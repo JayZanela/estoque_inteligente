@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model categorias {
+  id            Int             @id @default(autoincrement())
+  nome          String
+  descricao     String?
+  codigo        String?         @unique
+  produtos      produtos[]
+  subcategorias subcategorias[]
+}
+
+model produtos {
+  id                      Int                @id @default(autoincrement())
+  nome                    String
+  sku                     String             @unique
+  peso_unitario           Decimal?           @db.Decimal(10, 2)
+  volume                  Decimal?           @db.Decimal(10, 3)
+  tipo_embalagem          String?
+  descricao               String?
+  codigo_barras           String?
+  preco_custo             Decimal?           @db.Decimal(10, 2)
+  preco_venda             Decimal?           @db.Decimal(10, 2)
+  estoque_minimo          Int?
+  estoque_maximo          Int?
+  ponto_reposicao         Int?
+  lead_time               Int?
+  status                  String?
+  unidade_medida          String?
+  categoria_id            Int?
+  subcategoria_id         Int?
+  fornecedor_principal_id Int?
+  data_cadastro           DateTime?          @db.Date
+  imagem_url              String?
+  movimentacoes           movimentacoes[]
+  posicoes_estoque        posicoes_estoque[]
+  categorias              categorias?        @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subcategorias           subcategorias?     @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model modelos_moto {
+  id            Int       @id @default(autoincrement())
+  nome          String
+  marca         String?
+  ano_inicio    Int?
+  ano_fim       Int?
+  cilindrada    Int?
+  tipo          String?
+  descricao     String?
+  imagem_url    String?
+  status        String?
+  data_cadastro DateTime? @db.Date
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model movimentacoes {
+  id                                                                  Int               @id @default(autoincrement())
+  produto_id                                                          Int
+  lote_id                                                             Int?
+  posicao_origem_id                                                   Int?
+  posicao_destino_id                                                  Int?
+  tipo                                                                String?
+  quantidade                                                          Int
+  data_hora                                                           DateTime          @db.Timestamp(6)
+  responsavel_id                                                      Int?
+  documento_id                                                        Int?
+  motivo                                                              String?
+  observacoes                                                         String?
+  custo_unitario                                                      Decimal?          @db.Decimal(10, 2)
+  posicoes_estoque_movimentacoes_posicao_destino_idToposicoes_estoque posicoes_estoque? @relation("movimentacoes_posicao_destino_idToposicoes_estoque", fields: [posicao_destino_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  posicoes_estoque_movimentacoes_posicao_origem_idToposicoes_estoque  posicoes_estoque? @relation("movimentacoes_posicao_origem_idToposicoes_estoque", fields: [posicao_origem_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  produtos                                                            produtos          @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model posicoes_estoque {
+  id                                                               Int             @id @default(autoincrement())
+  endereco                                                         String
+  status                                                           String?
+  produto_id                                                       Int?
+  lote_id                                                          Int?
+  quantidade                                                       Int?
+  ultima_movimentacao                                              DateTime?       @db.Timestamp(6)
+  observacoes                                                      String?
+  capacidade_maxima                                                Int?
+  tipo_posicao                                                     String?
+  movimentacoes_movimentacoes_posicao_destino_idToposicoes_estoque movimentacoes[] @relation("movimentacoes_posicao_destino_idToposicoes_estoque")
+  movimentacoes_movimentacoes_posicao_origem_idToposicoes_estoque  movimentacoes[] @relation("movimentacoes_posicao_origem_idToposicoes_estoque")
+  produtos                                                         produtos?       @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model subcategorias {
+  id           Int        @id @default(autoincrement())
+  categoria_id Int
+  nome         String
+  descricao    String?
+  codigo       String?    @unique
+  produtos     produtos[]
+  categorias   categorias @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
