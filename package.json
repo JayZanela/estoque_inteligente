@@ -6,7 +6,7 @@
   "dev:next": "next dev -p 3000",
   "dev:api": "node server.js",
   "dev": "npm run dev:next",	
-  "build": "next build",
+  "build": "prisma generate && next build",
   "start": "next start",
   "setup": "npm install && prisma generate",
   "lint": "next lint"
