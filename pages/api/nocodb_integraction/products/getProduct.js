@@ -9,10 +9,11 @@ export default async function handler(req, res) {
         
     }
 
-        else {
-
-            return res.status(200).json({ error: 'Caiu no Else' });
-        }
+     //   else {
+//
+     //       return res.status(200).json({ error: 'Caiu no Else' });
+     //   }
+        
         const { id_product } = req.query;
         console.log('LOG: ' + id_product);
 
