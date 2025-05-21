@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "setup": "npm install && prisma generate",
-    "lint": "next lint"
+  "dev:next": "next dev -p 3000",
+  "dev:api": "node server.js",
+  "dev": "npm run dev:next",	
+  "build": "next build",
+  "start": "next start",
+  "setup": "npm install && prisma generate",
+  "lint": "next lint"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

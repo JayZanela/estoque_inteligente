@@ -3,6 +3,12 @@ import { prisma } from '../../../../lib/prisma';
 
 export default async function handler(req, res) {
 
+    if (req.method !== 'GET') {
+        console.log('Método não permitido: ' + req.method);
+        return res.status(405).json({ error: 'Método não permitido' });
+        
+    }
+
         const { id_product } = req.query;
         console.log('LOG: ' + id_product);
 
