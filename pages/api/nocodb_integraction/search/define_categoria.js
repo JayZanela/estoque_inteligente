@@ -1,6 +1,8 @@
 import { prisma } from '../../../../lib/prisma';
 import { OpenAI } from 'openai';
 import { buscarSubCategoria } from '../../../../lib/utils/funcao_Busca_subCategoria';
+import { atualizarProduto } from '../../../../lib/utils/funcao_update_produtos';
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -63,7 +65,7 @@ A resposta deve ser um **JSON válido**, no seguinte formato (os valores são ex
 
         const categoria = JSON.parse(pergunta_GPT.choices[0].message.content);
         const nome_categoria = categoria.nome;
-        const id_categoria = categoria.id;
+        const id_categoria = Number(categoria.id);
 
 
         const prompt_subcategoria = ' Qual é a subcategoria mais adequada para o produto? \n Aqui temos o produto: \n Nome: ' + produto.nome + '\n Descrição: ' + produto.descricao + '\n Categoria: ' + nome_categoria + '\n Responda apenas com o nome da subcategoria.';
@@ -87,7 +89,15 @@ A resposta deve ser um **JSON válido**, no seguinte formato (os valores são ex
 
 
         const id_sub_categoria = sub_categoria.id_sub_categoria;
-    return res.status(200).json({ id_categoria, sub_categoria: id_sub_categoria });
+
+        const atualizar_produto = await atualizarProduto(produto.id, { categoria_id: Number(id_categoria), subcategoria_id: Number(id_sub_categoria) });
+
+        if (atualizar_produto.status != 200) {
+            console.error('Erro ao atualizar produto:', atualizar_produto);
+            return res.status(atualizar_produto.status).json({ error: `${atualizar_produto.error}` });
+        }
+
+        return res.status(200).json({ id_categoria, sub_categoria: id_sub_categoria });
 
     } catch (error) {
         console.error('Erro ao processar a requisição:', error);

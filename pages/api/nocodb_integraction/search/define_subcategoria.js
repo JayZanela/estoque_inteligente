@@ -35,7 +35,7 @@ const {
 
     });
         console.log('Subcategorias encontradas:', subcategorias);
-    const listaFormatada = subcategorias.map(c => `- ${c.nome}: ${c.descricao}`).join('\n');
+    const listaFormatada = subcategorias.map(c => `id: ${c.id}: nome: ${c.nome}: descricao: ${c.descricao}`).join('\n');
 
     const pergunta_GPT = await openai.chat.completions.create({
           model: 'gpt-3.5-turbo',
@@ -59,11 +59,11 @@ Descrição: ${descricao_produto || 'Sem descrição disponível'}
 
 Com base nas subcategorias listadas anteriormente, qual é a subcategoria mais adequada para este produto?
 
-Responda **exclusivamente** com um **JSON válido** no formato:
+Responda **exclusivamente** com um **JSON válido** no formato (os valores são exemplos):
 
 {
   "nome": "Nome da Subcategoria",
-  "id": 123
+  "id": "id da Subcategoria"
 }`
     }             
           ]

@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model nc_m2m_ocupacoes_estoq_produtos {
+  produtos_id          Int
+  ocupacoes_estoque_id Int
+  produtos             produtos          @relation(fields: [produtos_id], references: [id], onDelete: Cascade, map: "fk_ocupacoes__produtos_gboqh7x3qe")
+  ocupacoes_estoque    ocupacoes_estoque @relation(fields: [ocupacoes_estoque_id], references: [id], onDelete: Cascade, map: "fk_ocupacoes__produtos_rotb6k4jxv")
+
+  @@id([produtos_id, ocupacoes_estoque_id])
+  @@index([produtos_id], map: "fk_ocupacoes__produtos_2sxfzlhg51")
+  @@index([ocupacoes_estoque_id], map: "fk_ocupacoes__produtos_gfst9zcksk")
+  @@map("_nc_m2m_ocupacoes_estoq_produtos")
+}
+
 model categorias {
   id            Int             @id @default(autoincrement())
   nome          String
@@ -16,84 +28,104 @@ model categorias {
   subcategorias subcategorias[]
 }
 
-model produtos {
-  id                      Int                @id @default(autoincrement())
-  nome                    String
-  sku                     String             @unique
-  peso_unitario           Decimal?           @db.Decimal(10, 2)
-  volume                  Decimal?           @db.Decimal(10, 3)
-  tipo_embalagem          String?
-  descricao               String?
-  codigo_barras           String?
-  preco_custo             Decimal?           @db.Decimal(10, 2)
-  preco_venda             Decimal?           @db.Decimal(10, 2)
-  estoque_minimo          Int?
-  estoque_maximo          Int?
-  ponto_reposicao         Int?
-  lead_time               Int?
-  status                  String?
-  unidade_medida          String?
-  categoria_id            Int?
-  subcategoria_id         Int?
-  fornecedor_principal_id Int?
-  data_cadastro           DateTime?          @db.Date
-  imagem_url              String?
-  movimentacoes           movimentacoes[]
-  posicoes_estoque        posicoes_estoque[]
-  categorias              categorias?        @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subcategorias           subcategorias?     @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model codigos_barras_produto {
+  id            Int       @id @default(autoincrement())
+  produto_id    Int
+  codigo_barras String    @unique
+  valido_ate    DateTime? @db.Date
+  observacao    String?
+  produtos      produtos  @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model modelos_moto {
-  id            Int       @id @default(autoincrement())
-  nome          String
-  marca         String?
-  ano_inicio    Int?
-  ano_fim       Int?
-  cilindrada    Int?
-  tipo          String?
-  descricao     String?
-  imagem_url    String?
-  status        String?
-  data_cadastro DateTime? @db.Date
+  id                  Int       @id @default(autoincrement())
+  nome                String
+  marca               String?
+  ano_inicio          Int?
+  ano_fim             Int?
+  potencia            Int?
+  autonomia_km        Int?
+  velocidade_km       Int?
+  peso_kg             Int?
+  capacidade_carga_kg Int?
+  tipo                String?
+  descricao           String?
+  imagem_url          String?
+  status              String?
+  data_cadastro       DateTime? @db.Date
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model movimentacoes {
-  id                                                                  Int               @id @default(autoincrement())
-  produto_id                                                          Int
-  lote_id                                                             Int?
-  posicao_origem_id                                                   Int?
-  posicao_destino_id                                                  Int?
-  tipo                                                                String?
-  quantidade                                                          Int
-  data_hora                                                           DateTime          @db.Timestamp(6)
-  responsavel_id                                                      Int?
-  documento_id                                                        Int?
-  motivo                                                              String?
-  observacoes                                                         String?
-  custo_unitario                                                      Decimal?          @db.Decimal(10, 2)
-  posicoes_estoque_movimentacoes_posicao_destino_idToposicoes_estoque posicoes_estoque? @relation("movimentacoes_posicao_destino_idToposicoes_estoque", fields: [posicao_destino_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posicoes_estoque_movimentacoes_posicao_origem_idToposicoes_estoque  posicoes_estoque? @relation("movimentacoes_posicao_origem_idToposicoes_estoque", fields: [posicao_origem_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  produtos                                                            produtos          @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                                                                     Int                @id @default(autoincrement())
+  ocupacao_origem_id                                                     Int?
+  ocupacao_destino_id                                                    Int?
+  tipo                                                                   String?            @default("Ajuste")
+  quantidade                                                             Int
+  data_hora                                                              DateTime           @db.Timestamp(6)
+  responsavel_id                                                         Int?
+  documento_id                                                           Int?
+  motivo                                                                 String?
+  observacoes                                                            String?
+  ocupacoes_estoque_movimentacoes_ocupacao_destino_idToocupacoes_estoque ocupacoes_estoque? @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque", fields: [ocupacao_destino_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ocupacoes_estoque_movimentacoes_ocupacao_origem_idToocupacoes_estoque  ocupacoes_estoque? @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque", fields: [ocupacao_origem_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ocupacoes_estoque {
+  id                                                                 Int                               @id @default(autoincrement())
+  lote_id                                                            Int?
+  quantidade                                                         Int
+  data_alocacao                                                      DateTime?                         @default(now()) @db.Timestamp(6)
+  observacoes                                                        String?
+  nc_m2m_ocupacoes_estoq_produtos                                    nc_m2m_ocupacoes_estoq_produtos[]
+  movimentacoes_movimentacoes_ocupacao_destino_idToocupacoes_estoque movimentacoes[]                   @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque")
+  movimentacoes_movimentacoes_ocupacao_origem_idToocupacoes_estoque  movimentacoes[]                   @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque")
+  posicoes_estoque                                                   posicoes_estoque?
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model posicoes_estoque {
-  id                                                               Int             @id @default(autoincrement())
-  endereco                                                         String
-  status                                                           String?
-  produto_id                                                       Int?
-  lote_id                                                          Int?
-  quantidade                                                       Int?
-  ultima_movimentacao                                              DateTime?       @db.Timestamp(6)
-  observacoes                                                      String?
-  capacidade_maxima                                                Int?
-  tipo_posicao                                                     String?
-  movimentacoes_movimentacoes_posicao_destino_idToposicoes_estoque movimentacoes[] @relation("movimentacoes_posicao_destino_idToposicoes_estoque")
-  movimentacoes_movimentacoes_posicao_origem_idToposicoes_estoque  movimentacoes[] @relation("movimentacoes_posicao_origem_idToposicoes_estoque")
-  produtos                                                         produtos?       @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                    Int                @id @default(autoincrement())
+  endereco              String
+  status                String?            @default("Livre")
+  ultima_movimentacao   DateTime?          @db.Timestamp(6)
+  observacoes           String?
+  capacidade_maxima     Int?
+  tipo_posicao          String?            @default("Padrão")
+  ocupacoes_estoque_id1 Int?               @unique
+  ocupacoes_estoque     ocupacoes_estoque? @relation(fields: [ocupacoes_estoque_id1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ocupacoes__posicoes_e_zjm6vl2vx2")
+
+  @@index([ocupacoes_estoque_id1], map: "fk_ocupacoes__posicoes_e_8a6t1npxaj")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model produtos {
+  id                              Int                               @id @default(autoincrement())
+  nome                            String
+  sku                             String?
+  peso_unitario                   Int?
+  volume_fisico                   Int?
+  tipo_embalagem                  String?
+  descricao                       String?
+  codigo_barras                   String?
+  preco_custo                     Int?
+  preco_venda                     Int?
+  estoque_minimo                  Int?                              @default(0)
+  estoque_maximo                  Int?                              @default(10000)
+  ponto_reposicao                 Int?
+  tempo_reposicao                 Int?                              @default(365)
+  status                          String?                           @default("Ativo")
+  unidade_medida                  String?
+  categoria_id                    Int?
+  subcategoria_id                 Int?
+  fornecedor_principal_id         Int?
+  data_cadastro                   DateTime?                         @default(now()) @db.Date
+  imagem_url                      String?
+  nc_m2m_ocupacoes_estoq_produtos nc_m2m_ocupacoes_estoq_produtos[]
+  codigos_barras_produto          codigos_barras_produto[]
+  categorias                      categorias?                       @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subcategorias                   subcategorias?                    @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model subcategorias {
