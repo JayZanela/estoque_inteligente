@@ -2,6 +2,7 @@ import { prisma } from '../../../../lib/prisma';
 import { OpenAI } from 'openai';
 import { buscarSubCategoria } from '../../../../lib/utils/funcao_Busca_subCategoria';
 import { atualizarProduto } from '../../../../lib/utils/funcao_update_produtos';
+import { traduzJsonProduto } from '../../../../lib/utils/funcao_traduz_json';
 
 
 const openai = new OpenAI({
@@ -9,9 +10,17 @@ const openai = new OpenAI({
 });
 export default async function handler(req, res) {
 
+    const json = traduzJsonProduto(req.body);
+
+    console.log('JSON recebido:', json);
+    /* Validando o JSON recebido */  
+    if ( json.erro ) {
+        return res.status(400).json({ error: json.erro });
+    }
+
     try {
 
-        const { produto } = req.body;
+        const { produto } = json;
 
         console.log('Produto recebido:', produto);
 
