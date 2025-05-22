@@ -10,17 +10,17 @@ const openai = new OpenAI({
 });
 export default async function handler(req, res) {
 
-    const json = traduzJsonProduto(req.body);
+    const jsonTraduzido = traduzJsonProduto(req.body);
 
-    console.log('JSON recebido:', json);
-    /* Validando o JSON recebido */  
-    if ( json.erro ) {
-        return res.status(400).json({ error: json.erro });
+    console.log('JSON recebido:', jsonTraduzido);
+    /* Validando o JSON recebido */
+    if (jsonTraduzido.erro) {
+        return res.status(400).json({ error: jsonTraduzido.erro });
     }
 
     try {
 
-        const { produto } = json;
+        const produto = { ...jsonTraduzido.json };
 
         console.log('Produto recebido:', produto);
 
