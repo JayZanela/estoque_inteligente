@@ -1,32 +1,34 @@
-
-import { prisma } from '../../../../lib/prisma';
+import { prisma } from "../../../../lib/prisma";
 
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Método não permitido" });
+  }
 
-    if (req.method !== 'GET') {
-        console.log('Método não permitido: ' + req.method);
-        return res.status(200).json({ error: 'Método não permitido' });
-        
+  console.log("REQ query:", req.query);
+
+  const { id_product } = req.query;
+
+  if (!id_product) {
+    return res.status(400).json({ error: "id_product ausente na query." });
+  }
+
+  try {
+    const produto_find = await prisma.produtos.findUnique({
+      where: {
+        id: parseInt(id_product),
+      },
+    });
+
+    if (!produto_find) {
+      return res.status(404).json({ error: "Produto não encontrado." });
     }
 
-     //   else {
-//
-     //       return res.status(200).json({ error: 'Caiu no Else' });
-     //   }
-        
-        const { id_product } = req.query;
-        console.log('LOG: ' + id_product);
+    console.log("Produto encontrado:", produto_find);
 
-        const produto_find = await prisma.produtos.findUnique({
-            where: {
-            id: parseInt(id_product),
-            },
-        });
-
-        console.log('Produto encontrado:', produto_find);
-
-        
-    res.status(200).json({ name: 'Recebido um id_product: ' + id_product
-     });
-
+    return res.status(200).json({ produto: produto_find });
+  } catch (error) {
+    console.error("Erro ao buscar produto:", error);
+    return res.status(500).json({ error: "Erro interno ao buscar produto." });
+  }
 }
