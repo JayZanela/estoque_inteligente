@@ -1,19 +1,27 @@
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
-import CadastroFiscal from "../components/cadastros_fiscais";
+import FormularioProduto from "../components/formularioProduto"; // Corrigido!
 import CadastroCompleto from "../components/cadastros_completo";
-import FormularioProduto from "../components/formularioProduto";
+import CadastroFiscal from "../components/cadastros_fiscais"; // se for o default
 
 export default function HomeItemPage() {
   const router = useRouter();
-  const { componente } = router.query;
+  const [componente, setComponente] = useState(null);
+
+  useEffect(() => {
+    if (router.isReady && router.query.componente) {
+      console.log("router.query no useEffect:", router.query);
+      setComponente(router.query.componente);
+    }
+  }, [router.isReady, router.query]);
 
   const renderConteudo = () => {
     switch (componente) {
-      case "outro":
-        return <CadastroCompleto />;
       case "fiscalizacao":
         return <FormularioProduto />;
+      case "outro":
+        return <CadastroCompleto />;
       default:
         return <CadastroFiscal />;
     }
@@ -21,11 +29,12 @@ export default function HomeItemPage() {
 
   return (
     <Container fluid className="mt-4">
+      <Button onClick={() => console.log("Query manual:", router.query)}>
+        Ver Query no console
+      </Button>
       <Row>
-        {/* Menu lateral */}
         <Col md={2} className="bg-light p-3 border-end">
           <h5>Menu</h5>
-
           <Button
             variant="outline-primary"
             className="w-100 mb-2"
@@ -33,7 +42,6 @@ export default function HomeItemPage() {
           >
             Cadastro Completo
           </Button>
-
           <Button
             variant="outline-primary"
             className="w-100 mb-2"
@@ -51,16 +59,17 @@ export default function HomeItemPage() {
                 ponto_reposicao: 8,
                 tempo_reposicao: 9,
               };
-              const query = new URLSearchParams(dados).toString();
-              router.push(`/itens/home_item?${query}`);
+              router.push({
+                pathname: "/itens/home_item",
+                query: dados,
+              });
             }}
           >
             Fiscalização
           </Button>
         </Col>
-
-        {/* Conteúdo dinâmico */}
         <Col md={10} className="p-4">
+          <h1>CONTEÚDO DINÂMICO</h1>
           {renderConteudo()}
         </Col>
       </Row>
