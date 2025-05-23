@@ -1,9 +1,16 @@
 import Header from "./components/header";
+import AppLayout from "@/lib/layouts/applayout";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import { useRouter } from "next/router";
 
 export default function Home() {
   const router = useRouter();
+
+  const path = router.pathname;
+
+  const isEstoque = path.startsWith("/estoque");
+
+  const Layout = isEstoque ? EstoqueLayout : AppLayout;
 
   const handleIrParaFiscalizacao = () => {
     const dados = {
@@ -13,36 +20,28 @@ export default function Home() {
     };
 
     router.push({
-      pathname: '/itens',
+      pathname: "/itens",
       query: dados,
     });
   };
 
   const handleHomeEstoque = () => {
     router.push({
-      pathname: '/estoque',
+      pathname: "/estoque",
     });
   };
 
   return (
-    <>
-      {/* Header fixo */}
-      <Header />
+    <Container className="mt-5 text-center">
+      <h1>Estoque Inteligente</h1>
+      <p>Bem-vindo ao sistema de controle de estoque!</p>
 
-      {/* Conteúdo principal */}
-      <Container fluid className="mt-1">
-        <Row className="justify-content-center">
-          <Col md={6} className="text-center">
-            <Button
-              variant="primary"
-              className="mt-4"
-              onClick={handleIrParaFiscalizacao}
-            >
-              Ir para Fiscalização
-            </Button>
-          </Col>
-        </Row>
-      </Container>
-    </>
+      <Button className="m-2" onClick={() => router.push("/estoque")}>
+        Ir para Estoque
+      </Button>
+      <Button className="m-2" onClick={() => router.push("/fiscalizacao")}>
+        Ir para Fiscalização
+      </Button>
+    </Container>
   );
 }

@@ -1,29 +1,17 @@
 import { useRouter } from "next/router";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import subpagesEstoque from "@/lib/data/subPagesEstoque";
+import { useState } from "react";
 
 export default function Home_Estoque() {
   const router = useRouter();
 
-  const subpages = [
-    {
-      title: "Posições de Estoque",
-      description:
-        "Visualize e edite a localização física dos produtos nos porta-pallets.",
-      path: "/estoque/posicoes",
-    },
-    {
-      title: "Movimentações",
-      description:
-        "Acompanhe entradas, saídas e transferências de produtos no estoque.",
-      path: "/estoque/movimentacoes",
-    },
-    {
-      title: "Cadastro de Produtos",
-      description: "Adicione e atualize informações dos produtos armazenados.",
-      path: "/estoque/cadastro",
-    },
-  ];
+  const subpages = subpagesEstoque;
+  const subpagesParaHome = subpages.filter((p) => p.mostrarNaHome);
 
+  const [paginaAtiva, setPaginaAtiva] = useState(
+    subpagesParaHome?.[0]?.rota || ""
+  );
   const handleVoltar = () => {
     router.push("/estoque");
   };
@@ -40,12 +28,11 @@ export default function Home_Estoque() {
       <Row
         className="w-100 d-flex justify-content-center g-0"
         style={{
-          minHeight: "80vh",
+          minHeight: "90vh",
           padding: "20px",
-          backgroundColor: "#f8f9fa",
         }}
       >
-        {subpages.map((page, idx) => (
+        {subpagesParaHome.map((page, idx) => (
           <Col key={idx} className="p-0 mb-4 d-flex justify-content-center">
             <Card
               style={{ width: "100%", maxWidth: "90%" }}
@@ -56,12 +43,18 @@ export default function Home_Estoque() {
                   className="mb-3 d-flex justify-content-center"
                   as="h2"
                 >
-                  {page.title}
+                  {page.nome}
                 </Card.Title>
-                <Card.Text>{page.description}</Card.Text>
+                <Card.Text>
+                  {page.descricao ? (
+                    <>{page.descricao}</>
+                  ) : (
+                    "Sem descrição Definida"
+                  )}
+                </Card.Text>
                 <Button
                   variant="primary"
-                  onClick={() => router.push(page.path)}
+                  onClick={() => router.push(page.rota)}
                 >
                   Acessar
                 </Button>
