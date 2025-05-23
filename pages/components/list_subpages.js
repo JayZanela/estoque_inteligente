@@ -16,14 +16,13 @@ import { useRouter } from "next/router";
 import Galeria from "../estoque/galeria_endereco";
 import Home_Estoque from "../estoque/home";
 
-export default function ListaSubpages({ paginas }) {
+export default function ListaSubpages({ paginas = [] }) {
   const router = useRouter();
-  const [paginaAtiva, setPaginaAtiva] = useState(paginas?.[0]?.rota || "");
 
   return (
     <Container fluid className="g-0 p-2">
       <Nav variant="tabs" activeKey={router.pathname} className="border-2">
-        <Nav.Item className=" d-flex align-items-center">
+        <Nav.Item className="d-flex align-items-center">
           <OverlayTrigger
             placement="bottom"
             overlay={
@@ -39,6 +38,7 @@ export default function ListaSubpages({ paginas }) {
             </Navbar.Brand>
           </OverlayTrigger>
         </Nav.Item>
+
         {paginas.map(({ nome, rota }) => (
           <Nav.Item key={rota}>
             <Nav.Link
