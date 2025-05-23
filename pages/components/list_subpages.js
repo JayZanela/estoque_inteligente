@@ -1,30 +1,32 @@
 import { Nav, Container } from "react-bootstrap";
 import { useState } from "react";
 
-// Importa seus componentes para cada "rota"
+// Mapeamento dos componentes por rota
 import CadastroProdutos from "../estoque/cadastro";
-//import Relatorios from "./relatorios";
-//import EstoqueAtual from "./atual";
-import Galeria from "../estoque/galleria";
+//import Relatorios from "../estoque/relatorios";
+//import EstoqueAtual from "../estoque/atual";
+import Galeria from "../estoque/galeria";
+import Home_Estoque from "../estoque/home";
 
+const componentes = {
+  "/estoque/cadastro": <CadastroProdutos />,
+  //"/estoque/relatorios": <Relatorios />,
+  //"/estoque/atual": <EstoqueAtual />,
+  "/estoque/galeria": <Galeria />,
+  "/estoque/home": <Home_Estoque />,
+};
 
-export default function ListaSubpages() {
-  const [paginaAtiva, setPaginaAtiva] = useState("cadastro");
-
-  const paginas = [
-    { nome: "Cadastro Produtos", id: "cadastro", componente: <CadastroProdutos /> },
-    //{ nome: "Relatórios", id: "relatorios", componente: <Relatorios /> },
-    //{ nome: "Estoque Atual", id: "atual", componente: <EstoqueAtual /> },
-  ];
+export default function ListaSubpages({ paginas }) {
+  const [paginaAtiva, setPaginaAtiva] = useState(paginas?.[0]?.rota || "");
 
   return (
     <Container fluid>
       <Nav variant="tabs" activeKey={paginaAtiva} className="border-1">
-        {paginas.map(({ nome, id }) => (
-          <Nav.Item key={id}>
+        {paginas.map(({ nome, rota }) => (
+          <Nav.Item key={rota}>
             <Nav.Link
-              onClick={() => setPaginaAtiva(id)}
-              eventKey={id}
+              onClick={() => setPaginaAtiva(rota)}
+              eventKey={rota}
               style={{ cursor: "pointer" }}
             >
               {nome}
@@ -34,7 +36,7 @@ export default function ListaSubpages() {
       </Nav>
 
       <div className="mt-4">
-        {paginas.find(({ id }) => id === paginaAtiva)?.componente}
+        {componentes[paginaAtiva] || <p>Componente não encontrado.</p>}
       </div>
     </Container>
   );

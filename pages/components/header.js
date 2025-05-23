@@ -14,7 +14,7 @@ export default function Header() {
     };
 
     router.push({
-      pathname: '../itens',
+      pathname: "../itens",
       query: dados,
     });
   };
@@ -27,13 +27,23 @@ export default function Header() {
     <Navbar bg="light" expand="lg" className="shadow-sm">
       <Container fluid className="align-items-center gap-3">
         <div className="d-flex align-items-center gap-3">
-           <Navbar.Brand>
-              <a href="/" className="mb-0 h4 text-decoration-none">Gestão NXT 🛵</a>
-            </Navbar.Brand>
-          <Button variant="outline-primary" size="sm" onClick={handleIrParaFiscalizacao}>
+          <Navbar.Brand>
+            <Link href="/" className="mb-0 h4 text-decoration-none">
+              Gestão NXT 🛵
+            </Link>
+          </Navbar.Brand>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={handleIrParaFiscalizacao}
+          >
             Fiscalização
           </Button>
-          <Button variant="outline-primary" size="sm" onClick={handleIrParaEstoque}>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={handleIrParaEstoque}
+          >
             Estoque
           </Button>
         </div>
