@@ -29,14 +29,14 @@ export default function NovoProduto() {
     >
       <iframe
         src="https://nocodb.plataforma.app/dashboard/#/nc/form/1d2e45a5-cb12-4073-92a2-1d919b4b9ce8"
+        loading="lazy"
         width="95%"
-        height="1500px" // maior que o container
+        height="1200px" // maior que o container
         style={{
           marginTop: "-40px", // 🔥 corte visual para esconder o topo
           border: "none",
           display: "block",
         }}
-        loading="lazy"
       />
     </div>
   );
