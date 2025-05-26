@@ -8,16 +8,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 export default async function handler(req, res) {
-  const jsonTraduzido = traduzJsonProduto(req.body);
-
-  console.log("JSON recebido:", jsonTraduzido);
-  /* Validando o JSON recebido */
-  if (jsonTraduzido.erro) {
-    return res.status(400).json({ error: jsonTraduzido.erro });
-  }
-
   try {
-    const produto = { ...jsonTraduzido.json };
+    const produto = { ...req.body.produto };
 
     console.log("Produto recebido:", produto);
 
