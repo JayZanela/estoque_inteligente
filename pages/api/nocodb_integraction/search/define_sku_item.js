@@ -7,65 +7,24 @@ export default async function handler(req, res) {
 
   console.log("API SKU AUTOMATICO REQ query:", req.body);
 
-  const id_product = req.body.produto.id;
+  const { id_produto, nome_modelo, edicao_modelo } = req.body;
 
-  console.log("ID do produto recebido:", id_product);
+  console.log("ID do produto recebido:", id_produto);
+  console.log("Nome do modelo recebido:", nome_modelo);
+  console.log("Edição do modelo recebida:", edicao_modelo);
 
-  if (!id_product) {
-    return res.status(400).json({ error: "ID do produto é necessário." });
+  if (!id_produto || nome_modelo === undefined || edicao_modelo === undefined) {
+    return res.status(400).json({
+      error: "ID do produto, nome do modelo e edição são necessários.",
+    });
   }
 
   try {
-    const produto_find = await prisma.produtos.findUnique({
-      where: {
-        id: parseInt(id_product),
-      },
-    });
+    const sku = `${nome_modelo}-V${edicao_modelo}-ID${id_produto}`;
 
-    if (!produto_find) {
-      return res.status(404).json({ error: "Produto não encontrado." });
-    }
-
-    const codigo_categoria = await prisma.categorias.findUnique({
-      where: {
-        id: produto_find.categoria_id,
-      },
-    });
-
-    const codigo_subcategoria = await prisma.subcategorias.findUnique({
-      where: {
-        id: produto_find.subcategoria_id,
-      },
-    });
-
-    console.log(
-      "Categoria e subcategoria encontradas:",
-      codigo_categoria,
-      codigo_subcategoria
-    );
-    const is_modelo_unique = await prisma.produtos_modelos_moto.findMany({
-      where: {
-        produto_id: parseInt(id_product),
-      },
-    });
-
-    const tipo_modelo =
-      is_modelo_unique.length > 1 ? "Mult" : is_modelo_unique[0].modelo_moto_id;
-    // Atualiza o SKU do produto
-    if (tipo_modelo !== "Mult") {
-      const nome_modelo = await prisma.modelos_moto.findUnique({
-        where: {
-          nome: tipo_modelo,
-        },
-      });
-
-      sku = `${codigo_categoria.codigo}${codigo_subcategoria.codigo}${nome_modelo.nome}`;
-    } else {
-      sku = `${codigo_categoria.codigo}${codigo_subcategoria.codigo}${tipo_modelo}`;
-    }
     const updatedProduct = await prisma.produtos.update({
       where: {
-        id: parseInt(id_product),
+        id: parseInt(id_produto),
       },
       data: {
         sku: sku,

@@ -4,13 +4,16 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import { buscarModelosExistentes } from "@/lib/utils/buscar_modelos_existentes";
+import Loading from "./loading";
 
 export default function FormularioProduto({ codigo_Barras }) {
   const router = useRouter();
   const query = router.query;
 
   const [modelosexistentes, setModelosExistentes] = useState(["NENHUM"]);
+  const [loading, setLoading] = useState(false);
   const busca_modelos = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/modelos/listar_modelos");
       const data = await response.json();
@@ -22,6 +25,8 @@ export default function FormularioProduto({ codigo_Barras }) {
       }
     } catch (error) {
       console.error("Erro ao buscar modelos:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,6 +93,7 @@ export default function FormularioProduto({ codigo_Barras }) {
   }, [query]);
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
@@ -114,13 +120,15 @@ export default function FormularioProduto({ codigo_Barras }) {
     } catch (error) {
       console.error("Erro ao criar novo produto:", error);
     }
-    try {
+    /*try {
       const response = await fetch("/api/modelos/relacionar_modelos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ produto: { id: novoProduto.id } }),
+        body: JSON.stringify({
+          produto: { id: novoProduto.id, modelo: { nome: formData.modelo } },
+        }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -128,8 +136,8 @@ export default function FormularioProduto({ codigo_Barras }) {
       }
     } catch (error) {
       console.error("Erro ao relacionar Modelos:", error);
-    }
-    router.push("/estoque/cadastro");
+    }*/
+    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -138,60 +146,63 @@ export default function FormularioProduto({ codigo_Barras }) {
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <Row>
-        <Col md={12}>
-          {campos.map((campo) => (
-            <Form.Group
-              key={campo.id}
-              controlId={`form${campo.id}`}
-              className="mb-3"
-            >
-              <Form.Label className="d-flex justify-content-center">
-                {campo.label}
-              </Form.Label>
-
-              {campo.tipo === "select" ? (
-                <Form.Select
-                  name={campo.id}
-                  value={formData[campo.id] || ""}
-                  onChange={handleChange}
-                >
-                  <option value="">Selecione</option>
-                  {campo.opcoes.map((opcao) => (
-                    <option key={opcao} value={opcao}>
-                      {opcao}
-                    </option>
-                  ))}
-                </Form.Select>
-              ) : (
-                <Form.Control
-                  type={campo.tipo}
-                  name={campo.id}
-                  value={formData[campo.id] || ""}
-                  onChange={handleChange}
-                />
-              )}
-            </Form.Group>
-          ))}
-
-          <div className="d-flex justify-content-end">
-            <div className="pe-2">
-              <Button
-                variant="outline-danger"
-                onClick={() => router.push("/estoque/cadastro")}
+    <>
+      {loading && <Loading />}
+      <Form onSubmit={handleSubmit}>
+        <Row>
+          <Col md={12}>
+            {campos.map((campo) => (
+              <Form.Group
+                key={campo.id}
+                controlId={`form${campo.id}`}
+                className="mb-3"
               >
-                Cancelar
-              </Button>
+                <Form.Label className="d-flex justify-content-center">
+                  {campo.label}
+                </Form.Label>
+
+                {campo.tipo === "select" ? (
+                  <Form.Select
+                    name={campo.id}
+                    value={formData[campo.id] || ""}
+                    onChange={handleChange}
+                  >
+                    <option value="">Selecione</option>
+                    {campo.opcoes.map((opcao) => (
+                      <option key={opcao} value={opcao}>
+                        {opcao}
+                      </option>
+                    ))}
+                  </Form.Select>
+                ) : (
+                  <Form.Control
+                    type={campo.tipo}
+                    name={campo.id}
+                    value={formData[campo.id] || ""}
+                    onChange={handleChange}
+                  />
+                )}
+              </Form.Group>
+            ))}
+
+            <div className="d-flex justify-content-end">
+              <div className="pe-2">
+                <Button
+                  variant="outline-danger"
+                  onClick={() => router.push("/estoque/cadastro")}
+                >
+                  Cancelar
+                </Button>
+              </div>
+              <div>
+                <Button variant="primary" type="submit">
+                  Salvar
+                </Button>
+              </div>
             </div>
-            <div>
-              <Button variant="primary" type="submit">
-                Salvar
-              </Button>
-            </div>
-          </div>
-        </Col>
-      </Row>
-    </Form>
+          </Col>
+        </Row>
+      </Form>
+    </>
   );
 }
