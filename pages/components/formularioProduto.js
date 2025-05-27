@@ -95,7 +95,6 @@ export default function FormularioProduto({ codigo_Barras }) {
       ...Object.fromEntries(formData.entries()),
       codigo_barras: codigo_Barras,
     };
-    console.log("Dados do formulário:", data);
     let novoProduto = null;
     try {
       const response = await fetch(

@@ -6,19 +6,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { produto } = req.body;
+    const produto_id  = req.body.produto.id;
+    const modelo_nome = req.body.modelo.nome;
 
-    if (!produto || !produto.id) {
-      return res.status(400).json({ error: "ID do produto é necessário." });
+    if (!produto_id || !modelo_nome) {
+      return res.status(400).json({ error: "ID e Modelo são necessários." });
     }
 
-    const modelos = await prisma.modelos_moto.findMany({
+    const updateModelo = await prisma.produto_.update({
       where: {
-        produtos: {
-          some: {
-            id: produto.id,
-          },
-        },
+        nome: {
       },
       select: { id: true, nome: true },
     });

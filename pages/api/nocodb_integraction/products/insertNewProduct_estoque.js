@@ -5,12 +5,12 @@ import { validarCategorias } from "../search/define_categoria";
 export default async function handler(req, res) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   if (req.method === "POST") {
-    const { nome, descricao, tipo_embalagem, unidade_medida, codigo_barras } =
+    const { nome, descricao, tipo_embalagem, unidade_medida, nome_modelo, codigo_barras } =
       req.body;
 
     console.log("REQ body:", req.body);
     // Validação simples dos campos
-    if (!nome || !descricao || !tipo_embalagem || !unidade_medida) {
+    if (!nome || !descricao || !tipo_embalagem || !unidade_medida || !nome_modelo) {
       return res
         .status(400)
         .json({ error: "Todos os campos são obrigatórios." });
@@ -31,7 +31,8 @@ export default async function handler(req, res) {
         .status(inserirRegistro.status)
         .json({ error: `${inserirRegistro.error}` });
     }
-    console.log("Produto inserido com sucesso:", inserirRegistro.produto);
+    console.log("INSERT NEW PRODUCT!!!!!!!!!!!!!! Produto inserido com sucesso:", inserirRegistro.produto);
+    const id_produtoNovo = inserirRegistro.produto.id;
     const validarCategoriasApi = await fetch(
       `${baseUrl}/api/nocodb_integraction/search/define_categoria`,
       {
@@ -48,6 +49,24 @@ export default async function handler(req, res) {
         .status(validarCategoriasApi.status)
         .json({ error: `${validarCategoriasApi.error}` });
     }
+    const vinculaModelos = await fetch(
+      `${baseUrl}/api/modelos/relacionar_modelos`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ produto: { id: id_produtoNovo }, modelo: { nome: nome_modelo } }), // você pode ajustar a estrutura do payload
+      }
+    );
+    if (vinculaModelos.status !== 200) {
+      console.error("Erro ao vincular modelos:", vinculaModelos);
+      return res
+        .status(vinculaModelos.status)
+        .json({ error: `${vinculaModelos.error}` });
+    }
+
+
     /*const definir_sku_item = await fetch(
       `${baseUrl}/api/nocodb_integraction/search/define_sku_item`,
       {

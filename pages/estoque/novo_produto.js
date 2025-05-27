@@ -31,7 +31,7 @@ export default function NovoProduto() {
     <div
       style={{
         width: "99vw",
-        height: "90vh",
+        height: "100vh",
         overflow: "hidden",
         margin: "0px",
         padding: "0",
@@ -41,7 +41,6 @@ export default function NovoProduto() {
     >
       <Container
         className="mt-5 justify-content-center"
-        style={{ maxWidth: "600px" }}
       >
         <h1 className="text-center">Cadastrar Novo Produto</h1>
         <p className="text-center">Preencha os dados do novo produto abaixo:</p>
