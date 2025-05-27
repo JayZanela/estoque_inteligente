@@ -28,29 +28,31 @@ export default function NovoProduto() {
   };
 
   return (
-    <div
-      style={{
-        width: "99vw",
-        height: "100vh",
-        overflow: "hidden",
-        margin: "0px",
-        padding: "0",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <Container
-        className="mt-5 justify-content-center"
+    <Container fluid className="mt-5">
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+          margin: "0px",
+          padding: "0",
+          display: "flex",
+          justifyContent: "center",
+        }}
       >
-        <h1 className="text-center">Cadastrar Novo Produto</h1>
-        <p className="text-center">Preencha os dados do novo produto abaixo:</p>
-        {inputCodigoBarras() && (
-          <div className="alert alert-secondary text-center">
-            Código de Barras: {codigo}
-          </div>
-        )}
-        <FormularioProduto onSubmit={handleSubmit} codigo_Barras={codigo} />
-      </Container>
-    </div>
+        <Container fluid className="mt-5 justify-content-center">
+          <h1 className="text-center">Cadastrar Novo Produto</h1>
+          <p className="text-center">
+            Preencha os dados do novo produto abaixo:
+          </p>
+          {inputCodigoBarras() && (
+            <div className="alert alert-secondary text-center">
+              Código de Barras: {codigo}
+            </div>
+          )}
+          <FormularioProduto onSubmit={handleSubmit} codigo_Barras={codigo} />
+        </Container>
+      </div>
+    </Container>
   );
 }
