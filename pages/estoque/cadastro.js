@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { Container, Col, Row, Form, Button } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function CadastroEstoque() {
   const router = useRouter();
@@ -8,6 +8,7 @@ export default function CadastroEstoque() {
   const [codigoExiste, setCodigoExiste] = useState(0);
   const [produtosRelacionados, setProdutosRelacionados] = useState([]);
   const [selectedProdutoId, setSelectedProdutoId] = useState(null);
+  const inputRef = useRef(null);
 
   const handleVoltar = () => {
     router.push("/estoque");
@@ -69,9 +70,15 @@ export default function CadastroEstoque() {
           <Form.Group controlId="formCodigoBarras">
             <Form.Control
               type="text"
-              placeholder="Digite o código de barras"
-              value={codigo}
+              placeholder="Escaneie ou digite o código de barras"
+              autoFocus
               onChange={(e) => setCodigo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  validarCodigoBarras(); // chama sua função de busca
+                }
+              }}
             />
           </Form.Group>
         </Form>
