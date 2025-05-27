@@ -11,24 +11,21 @@ export default function HomeItemPage() {
     if (router.isReady) {
       setDadosIniciais(router.query); // passa tudo da query como props
     }
-  }, [router.isReady]);
+  }, [router.isReady, router.query]);
 
-  
-  
   if (!router.isReady) return <p>Carregando...</p>;
 
   return (
     <>
-    <Header />
-    
-    <div>
-      <h2 className="text-center mb-4">Cadastro de Produto</h2>
-      {dadosIniciais?.componente === "fiscalizacao" && (
-        <FormularioProduto dadosIniciais={dadosIniciais} />
-      )}
-      {/* Aqui pode renderizar outros componentes baseados no componente */}
-    </div>
+      <Header />
+
+      <div>
+        <h2 className="text-center mb-4">Cadastro de Produto</h2>
+        {dadosIniciais?.componente === "fiscalizacao" && (
+          <FormularioProduto dadosIniciais={dadosIniciais} />
+        )}
+        {/* Aqui pode renderizar outros componentes baseados no componente */}
+      </div>
     </>
-    
   );
 }

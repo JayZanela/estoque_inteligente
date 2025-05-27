@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 export default function FormularioProduto() {
-
   console.log("FormularioProduto");
-
 
   const router = useRouter();
 
@@ -31,7 +29,7 @@ export default function FormularioProduto() {
         Estoque_Maximo: query.estoque_maximo || "",
       });
     }
-  }, [router.isReady]);
+  }, [router.isReady, router.query]);
 
   console.log("( formularioProduto )router pos validacao:", router);
 
@@ -80,6 +78,6 @@ export default function FormularioProduto() {
           Salvar
         </button>
       </form>
-     </div> 
+    </div>
   );
 }
