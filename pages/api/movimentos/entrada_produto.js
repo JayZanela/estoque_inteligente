@@ -67,29 +67,38 @@ export default async function handler(req, res) {
     });
 
     // Cria a movimentação de entrada
-    const entradaCriada = await prisma.movimentacoes.create({
-      data: {
-        ocupacao_origem_id: idocupacao_estoque,
-        ocupacao_destino_id: idocupacao_estoque,
-        tipo: tipo,
-        quantidade,
-        data_hora: new Date(),
-        responsavel_id: responsavel_id || null,
-        documento_id: documento_id || null,
-        motivo: motivo,
-        observacoes: observacoes || null,
-      },
-    });
+    const movimentacao_criada = await fetch(
+      `/api/movimentos/cria_movimentacao`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          movimento: {
+            ocupacao_origem_id: ocupacao_origem_id || null,
+            ocupacao_destino_id: idocupacao_estoque,
+            tipo: tipo,
+            quantidade,
+            responsavel_id: responsavel_id || null,
+            documento_id: documento_id || null,
+            motivo: motivo,
+            observacoes: observacoes || null,
+          },
+        }),
+      }
+
+    )
 
     // Retorna os dados da movimentação, nova ocupação e relacionamentos
     const retorno = {
-      movimentacao: entradaCriada,
+      movimentacao: movimentacao_criada,
       ocupacao: gerarNovaOcupacao,
       relacionarOcupacao: relacionarOcupacao,
       atualizarOccupacao: atualizarOccupacao,
     };
 
-    
+
     res.status(201).json(retorno);
   } catch (error) {
     console.error("Erro ao criar entrada:", error);
