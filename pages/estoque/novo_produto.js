@@ -28,8 +28,9 @@ export default function NovoProduto() {
   };
 
   return (
-    <Container fluid className="mt-5">
+    <Container fluid className="mt-5 mb-5">
       <div
+        md={11}
         style={{
           width: "100%",
           height: "100%",

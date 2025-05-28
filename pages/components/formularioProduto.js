@@ -12,6 +12,14 @@ export default function FormularioProduto({ codigo_Barras }) {
 
   const [modelosexistentes, setModelosExistentes] = useState(["NENHUM"]);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [resultadoSave, setResultadoSave] = useState({
+    status: 0,
+    message: "Preencha Todos os campos.",
+    is: false,
+  });
+
+  // Função para buscar modelos existentes
   const busca_modelos = async () => {
     setLoading(true);
     try {
@@ -30,6 +38,7 @@ export default function FormularioProduto({ codigo_Barras }) {
     }
   };
 
+  // Chama a função para buscar modelos quando o componente é montado
   useEffect(() => {
     busca_modelos();
   }, []);
@@ -84,14 +93,14 @@ export default function FormularioProduto({ codigo_Barras }) {
     },
   ];
 
-  const [formData, setFormData] = useState({});
-
+  // Preenche os campos do formulário com os dados da query, se existirem
   useEffect(() => {
     if (Object.keys(query).length > 0) {
       setFormData({ ...query });
     }
   }, [query]);
 
+  // Função para lidar com o envio do formulário
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
@@ -101,7 +110,9 @@ export default function FormularioProduto({ codigo_Barras }) {
       ...Object.fromEntries(formData.entries()),
       codigo_barras: codigo_Barras,
     };
+
     let novoProduto = null;
+
     try {
       const response = await fetch(
         "/api/nocodb_integraction/products/insertNewProduct_estoque",
@@ -115,29 +126,33 @@ export default function FormularioProduto({ codigo_Barras }) {
       );
       if (response.ok) {
         novoProduto = await response.json();
+        setResultadoSave({
+          status: 200,
+          message: "Produto criado com sucesso! Redirecionando...",
+          is: true,
+        });
         console.log("Novo produto criado:", novoProduto);
+      } else {
+        const errorData = await response.json();
+        setResultadoSave({
+          status: 400,
+          message: errorData.error,
+          is: false,
+        });
       }
     } catch (error) {
       console.error("Erro ao criar novo produto:", error);
-    }
-    /*try {
-      const response = await fetch("/api/modelos/relacionar_modelos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          produto: { id: novoProduto.id, modelo: { nome: formData.modelo } },
-        }),
+      setResultadoSave({
+        status: 500,
+        message: "Erro interno ao criar produto.",
+        is: false,
       });
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Modelos relacionados com sucesso:", data);
-      }
-    } catch (error) {
-      console.error("Erro ao relacionar Modelos:", error);
-    }*/
+    }
     setLoading(false);
+    if (novoProduto) {
+      // Redireciona para a página de produtos após o envio
+      router.push("/estoque/movimentos");
+    }
   };
 
   const handleChange = (e) => {
@@ -147,10 +162,16 @@ export default function FormularioProduto({ codigo_Barras }) {
 
   return (
     <>
+      {resultadoSave.is && alert(resultadoSave.message)}
+      {!resultadoSave.is && resultadoSave.status !== 0 && (
+        <div className="alert alert-warning text-center">
+          {resultadoSave.message}
+        </div>
+      )}
       {loading && <Loading />}
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} className="mt-3 mb-3 ps-3 pe-3">
         <Row>
-          <Col md={12}>
+          <Col md={8} className="mx-auto">
             {campos.map((campo) => (
               <Form.Group
                 key={campo.id}
