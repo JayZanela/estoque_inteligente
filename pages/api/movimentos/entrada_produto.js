@@ -88,6 +88,8 @@ export default async function handler(req, res) {
       relacionarOcupacao: relacionarOcupacao,
       atualizarOccupacao: atualizarOccupacao,
     };
+
+    
     res.status(201).json(retorno);
   } catch (error) {
     console.error("Erro ao criar entrada:", error);
