@@ -49,9 +49,11 @@ export default function Movimentos() {
     if (!router.isReady) return;
     const { produtoId } = router.query;
     const { id_endereco } = router.query;
-    setProdutoIdURL(produtoId);
+
     if (id_endereco) {
       setManualId(id_endereco.toString());
+    } else if (produtoId) {
+      setProdutoIdURL(produtoId);
     }
   }, [router.isReady, router.query]);
 
@@ -130,8 +132,13 @@ export default function Movimentos() {
   // Renderiza formulário dinâmico
   const renderForm = () => {
     if (!selecionado) return null;
+
+    const idProdutoParam = produtoIdURL
+      ? Number(produtoIdURL)
+      : selecionado?.idProduto;
+
     const props = {
-      produto: selecionado.idProduto,
+      produto: idProdutoParam,
       ocupacao_entrada: dadosEndereco?.ocupacoes_estoque_id,
     };
     switch (selecionado.tipo) {
@@ -144,35 +151,35 @@ export default function Movimentos() {
 
   return (
     <Container className="py-4">
-      <p> {produtoIdURL}</p>
       {carregando && <Loading />}
       <h1 className="text-center">Movimentos de Estoque</h1>
 
       {/* Input manual do ID de endereço */}
-      <Form
-        className="mb-4 d-flex gap-2 justify-content-center"
-        onSubmit={handleManualSelect}
-      >
-        <Form.Group controlId="manualId">
-          <Form.Label>Endereço (Ex: R01-C01-N1)</Form.Label>
-          <Form.Control
-            type="text"
-            value={manualId}
-            onChange={(e) => setManualId(e.target.value)}
-            placeholder="Digite ou escaneie o código"
-            autoFocus
-            onDragEnter={handleManualSelect}
-          />
-        </Form.Group>
-        <Row className="align-items-end">
-          <Col>
-            <Button type="button" onClick={handleManualSelect}>
-              Carregar
-            </Button>
-          </Col>
-        </Row>
-      </Form>
-
+      {!produtoIdURL && (
+        <Form
+          className="mb-4 d-flex gap-2 justify-content-center"
+          onSubmit={handleManualSelect}
+        >
+          <Form.Group controlId="manualId">
+            <Form.Label>Endereço (Ex: R01-C01-N1)</Form.Label>
+            <Form.Control
+              type="text"
+              value={manualId}
+              onChange={(e) => setManualId(e.target.value)}
+              placeholder="Digite ou escaneie o código"
+              autoFocus
+              onDragEnter={handleManualSelect}
+            />
+          </Form.Group>
+          <Row className="align-items-end">
+            <Col>
+              <Button type="button" onClick={handleManualSelect}>
+                Carregar
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      )}
       {erroEndereco && (
         <div className="text-center text-danger mb-4">
           Endereço inválido. Verifique o padrão RDD-CXX-NX.
@@ -225,7 +232,9 @@ export default function Movimentos() {
           <Card.Body>{renderForm()}</Card.Body>
         </Card>
       ) : (
-        <p className="text-center">Selecione uma ação acima para continuar.</p>
+        <p className="h4 text-center">
+          Selecione uma ação acima para continuar.
+        </p>
       )}
     </Container>
   );

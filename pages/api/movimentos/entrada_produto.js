@@ -7,63 +7,61 @@ export default async function handler(req, res) {
   }
 
   const {
-    ocupacao_origem_id,
-    ocupacao_destino_id,
-    tipo = "Entrada",
+    endereco,
     quantidade,
     responsavel_id,
     documento_id,
-    motivo,
+    motivo = "Inventário",
     observacoes,
-    produtos_id, // Certifique-se de que este campo está sendo enviado corretamente
+    produtos_id,
   } = req.body;
 
-  if (!quantidade || !ocupacao_destino_id || !produtos_id) {
+  if (!quantidade || !endereco || !produtos_id) {
     return res
       .status(400)
-      .json({ error: "Quantidade, destino e produto são obrigatórios." });
-  }
-  if (motivo === undefined) {
-    motivo = "Inventário";
+      .json({ error: "Quantidade, endereço e produto são obrigatórios." });
   }
 
   try {
-
     // Verifica se a posição de estoque existe para o destino
-    const buscaIdOcupacaoDestino = await prisma.posicoes_estoque.findFirst({
-      where: { endereco: ocupacao_destino_id },
+    const novaOcupacao = await fetch("/api/movimentos/definir_ocupacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        param: { endereco: endereco },
+      }),
     });
-
-    if (!buscaIdOcupacaoDestino) {
-      return res.status(404).json({
-        error: "Ocupação de destino não encontrada no Mapa de Estoque.",
-      });
+    if (!novaOcupacao.ok) {
+      const erro = await novaOcupacao.json();
+      return res
+        .status(novaOcupacao.status)
+        .json({ error: erro?.error || "Erro ao criar nova ocupação." });
     }
+    const dataNovaOcupacao = await novaOcupacao.json();
 
-    // Cria uma nova ocupação de estoque
-    const gerarNovaOcupacao = await prisma.ocupacoes_estoque.create({
+    await prisma.ocupacoes_estoque.update({
+      where: { id: ocupacaoDestinoId },
       data: {
-        lote_id: null, // Inicialmente nulo, pode ser atualizado posteriormente
-        data_alocacao: new Date(), // Inicialmente nulo, pode ser atualizado posteriormente
-        quantidade: quantidade,
-        observacoes: observacoes,
+        quantidade: {
+          increment: quantidade,
+        },
       },
     });
-    const idocupacao_estoque = gerarNovaOcupacao.id;
-
     // Relaciona a nova ocupação com o produto
     const relacionarOcupacao =
       await prisma.nc_m2m_ocupacoes_estoq_produtos.create({
         data: {
           produtos_id: parseInt(produtos_id),
-          ocupacoes_estoque_id: parseInt(idocupacao_estoque),
+          ocupacoes_estoque_id: parseInt(
+            dataNovaOcupacao.ocupacoes_estoque_id1
+          ),
         },
       });
 
     // Atualiza a posição de estoque para apontar para a nova ocupação
     const atualizarOccupacao = await prisma.posicoes_estoque.update({
-      where: { id: buscaIdOcupacaoDestino.id },
-      data: { ocupacoes_estoque_id1: idocupacao_estoque },
+      where: { endereco: endereco },
+      data: { ocupacoes_estoque_id1: dataNovaOcupacao.ocupacoes_estoque_id1 },
     });
 
     // Cria a movimentação de entrada
@@ -87,8 +85,7 @@ export default async function handler(req, res) {
           },
         }),
       }
-
-    )
+    );
 
     // Retorna os dados da movimentação, nova ocupação e relacionamentos
     const retorno = {
@@ -97,7 +94,6 @@ export default async function handler(req, res) {
       relacionarOcupacao: relacionarOcupacao,
       atualizarOccupacao: atualizarOccupacao,
     };
-
 
     res.status(201).json(retorno);
   } catch (error) {
