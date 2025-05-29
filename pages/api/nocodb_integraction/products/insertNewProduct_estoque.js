@@ -3,7 +3,7 @@ import { inserirProduto } from "@/lib/utils/funcao_insert_produto";
 import { validarCategorias } from "../search/define_categoria";
 
 export default async function handler(req, res) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.API_BASE_URL || "http://localhost:3000";
   if (req.method === "POST") {
     const {
       nome,
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     );
     const id_produtoNovo = inserirRegistro.produto.id;
     const validarCategoriasApi = await fetch(
-      `/api/nocodb_integraction/search/define_categoria`,
+      `${baseUrl}/api/nocodb_integraction/search/define_categoria`,
       {
         method: "POST",
         headers: {
@@ -63,16 +63,19 @@ export default async function handler(req, res) {
         .status(validarCategoriasApi.status)
         .json({ error: `${validarCategoriasApi.error}` });
     }
-    const vinculaModelos = await fetch(`/api/modelos/relacionar_modelos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        produto: { id: id_produtoNovo },
-        modelo: { nome: modelo }, // Certifique-se de que o modelo contém um ID válido
-      }), // você pode ajustar a estrutura do payload
-    });
+    const vinculaModelos = await fetch(
+      `${baseUrl}/api/modelos/relacionar_modelos`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          produto: { id: id_produtoNovo },
+          modelo: { nome: modelo }, // Certifique-se de que o modelo contém um ID válido
+        }), // você pode ajustar a estrutura do payload
+      }
+    );
 
     const vinculaModelosData = await vinculaModelos.json();
     console.log("json vincula modelos:", vinculaModelosData);
@@ -85,7 +88,7 @@ export default async function handler(req, res) {
     }
 
     const definir_sku_item = await fetch(
-      `/api/nocodb_integraction/search/define_sku_item`,
+      `${baseUrl}/api/nocodb_integraction/search/define_sku_item`,
       {
         method: "POST",
         headers: {
