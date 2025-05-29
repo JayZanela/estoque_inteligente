@@ -22,11 +22,10 @@ export default function CadastroEntradaEstoque({
     }
   }, [produto, produtoBuscado]);
 
+  console.log(produto);
+
   if (!produtoBuscado) return <Loading />;
 
-  if (produtoBuscado.status !== 200) {
-    return null;
-  }
   const { sku, nome } = produtoBuscado.produto;
 
   const handleSubmit = async (e) => {
@@ -38,7 +37,6 @@ export default function CadastroEntradaEstoque({
     <Container fluid className="mt-4">
       <Row className="justify-content-center">
         <Col md={8}>
-          <h2>Entrada de Estoque: {nome}</h2>
           <Form onSubmit={handleSubmit}>
             {/* Campos */}
             <Form.Group controlId="formQuantidade">

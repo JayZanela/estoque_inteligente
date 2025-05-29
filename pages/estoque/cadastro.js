@@ -95,7 +95,7 @@ export default function CadastroEstoque() {
               {produtosRelacionados.map((p, i) => (
                 <Form.Check
                   key={p.id}
-                  type="radio"
+                  type="checkbox"
                   name="produtoSelecionado"
                   id={`produto-${p.id}`}
                   value={p.id}
@@ -107,8 +107,14 @@ export default function CadastroEstoque() {
                       </div>
                     </div>
                   }
-                  checked={Number(selectedProdutoId) === p.id}
-                  onChange={() => setSelectedProdutoId(p.id)}
+                  checked={selectedProdutoId === p.id}
+                  onChange={() => {
+                    if (Number(selectedProdutoId) === p.id) {
+                      setSelectedProdutoId(null);
+                    } else {
+                      setSelectedProdutoId(p.id);
+                    }
+                  }}
                 />
               ))}
             </Form.Group>
@@ -119,7 +125,7 @@ export default function CadastroEstoque() {
             onClick={() => {
               if (selectedProdutoId !== null) {
                 router.push(
-                  `/estoque/cadastro_existente?codigo=${codigo}&produtoId=${selectedProdutoId}`
+                  `/estoque/movimentos?produtoId=${selectedProdutoId}&tipoMovimento=Entrada`
                 );
               } else {
                 alert("Por favor, selecione um produto relacionado.");

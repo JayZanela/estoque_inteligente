@@ -26,8 +26,31 @@ export default async function handler(req, res) {
       return res.status(410).json({ error: "Ocupação Sem Produtos" });
     }
 
+    const produtosDetalhados = await Promise.all(
+      buscaProdutosOcupantes.map(async (item) => {
+        const produto = await prisma.produtos.findUnique({
+          where: { id: item.produtos_id },
+        });
+
+        return {
+          ...produto, // se quiser manter essa referência também
+        };
+      })
+    );
+
+    const ocupacaoDetalhado = await prisma.ocupacoes_estoque.findUnique({
+      where: { id: ocupacaoParam },
+    });
+    if (!ocupacaoDetalhado) {
+      return res.status(420).json({ error: "Ocupação Sem Detlahes." });
+    }
+
     // se encontrou, retorna o objeto completo
-    return res.status(200).json({ data: buscaProdutosOcupantes });
+    return res
+      .status(200)
+      .json({
+        data: { produtos: produtosDetalhados, ocupacao: ocupacaoDetalhado },
+      });
   } catch (error) {
     console.error("Erro ao buscar produtos Ocupado:", error);
     return res.status(500).json({

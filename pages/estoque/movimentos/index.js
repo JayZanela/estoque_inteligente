@@ -4,6 +4,7 @@ import { Container, Card, Form, Button, Row, Col } from "react-bootstrap";
 import dynamic from "next/dynamic";
 import { opcoesMovimentosEstoque } from "../../../lib/data/optionsMovimentosEstoque";
 import { useRouter } from "next/router";
+import Loading from "@/pages/components/loading";
 
 // imports dinâmicos dos formulários
 const FormEntrada = dynamic(
@@ -36,19 +37,32 @@ export default function Movimentos() {
   const [erroEndereco, setErroEndereco] = useState(false);
   const [erroOcupacao, setErroOcupacao] = useState(false);
   const [dadosEndereco, setDadosEndereco] = useState(null);
-  const [produtosOcupacao, setProdutosOcupacao] = useState([]);
+  const [produtosOcupacao, setProdutosOcupacao] = useState({
+    produtos: [],
+    ocupacao: null,
+  });
+  const [carregando, setCarregando] = useState(false);
+  const [produtoIdURL, setProdutoIdURL] = useState(null);
 
   // Pre-seleção via query param
   useEffect(() => {
     if (!router.isReady) return;
+    const { produtoId } = router.query;
     const { id_endereco } = router.query;
+    setProdutoIdURL(produtoId);
     if (id_endereco) {
       setManualId(id_endereco.toString());
     }
   }, [router.isReady, router.query]);
 
   // Busca endereço e produtos na ocupação
-  const handleManualSelect = async () => {
+  const handleManualSelect = async (e) => {
+    if (e) e.preventDefault();
+
+    setCarregando(true);
+    setErroEndereco(false);
+    setErroOcupacao(false);
+    setSelecionado(null);
     try {
       // 1) Busca dados da ocupação
       const resEnd = await fetch("/api/estoque/busca_endereco", {
@@ -66,9 +80,21 @@ export default function Movimentos() {
       setErroEndereco(false);
       setDadosEndereco(jsonEnd.data);
 
-      // 2) Busca produtos na ocupação usando ID retornado
       const idOcup = jsonEnd.data.ocupacoes_estoque_id1;
-      console.log("ID da ocupação extraído:", idOcup);
+      if (!idOcup) {
+        setErroOcupacao(true);
+        setSelecionado({
+          tipo: "entrada",
+          nome: "Entrada de Produto",
+          rota: "/estoque/movimentos/entrada_nova",
+          descricao: "Registrar uma nova entrada de produto no estoque.",
+          idProduto: 1,
+        });
+        setProdutosOcupacao({ produtos: [], ocupacao: null });
+        return;
+      }
+
+      // 2) Busca produtos na ocupação usando ID retornado
       const resProd = await fetch("/api/estoque/busca_produtos_ocupacao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -77,16 +103,27 @@ export default function Movimentos() {
       const jsonProd = await resProd.json();
       if (!resProd.ok) {
         setErroOcupacao(true);
+        if (resProd.status === 410) {
+          setSelecionado({
+            tipo: "entrada",
+            nome: "Entrada de Produto",
+            rota: "/estoque/movimentos/entrada_nova",
+            descricao: "Registrar uma nova entrada de produto no estoque",
+            idProduto: 1,
+          });
+        }
 
         setProdutosOcupacao([]);
         return;
       }
-      setProdutosOcupacao(Array.isArray(jsonProd.data) ? jsonProd.data : []);
+      setProdutosOcupacao(jsonProd.data);
     } catch (err) {
       console.error(err);
       setErroEndereco(true);
       setDadosEndereco(null);
       setProdutosOcupacao([]);
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -107,10 +144,15 @@ export default function Movimentos() {
 
   return (
     <Container className="py-4">
+      <p> {produtoIdURL}</p>
+      {carregando && <Loading />}
       <h1 className="text-center">Movimentos de Estoque</h1>
 
       {/* Input manual do ID de endereço */}
-      <Form className="mb-4 d-flex gap-2 justify-content-center">
+      <Form
+        className="mb-4 d-flex gap-2 justify-content-center"
+        onSubmit={handleManualSelect}
+      >
         <Form.Group controlId="manualId">
           <Form.Label>Endereço (Ex: R01-C01-N1)</Form.Label>
           <Form.Control
@@ -119,6 +161,7 @@ export default function Movimentos() {
             onChange={(e) => setManualId(e.target.value)}
             placeholder="Digite ou escaneie o código"
             autoFocus
+            onDragEnter={handleManualSelect}
           />
         </Form.Group>
         <Row className="align-items-end">
@@ -142,17 +185,15 @@ export default function Movimentos() {
       )}
 
       {/* Lista de produtos na ocupação */}
-      {produtosOcupacao.length > 0 && (
+      {produtosOcupacao.produtos?.length > 0 && (
         <Card className="mb-4">
           <Card.Header>
             Produtos na Ocupação {dadosEndereco?.endereco}
           </Card.Header>
           <Card.Body>
             <ul>
-              {produtosOcupacao.map((item) => (
-                <li key={item.id}>
-                  {item.produto_nome || item.nome} — Qtde: {item.quantidade}
-                </li>
+              {produtosOcupacao.produtos?.map((item) => (
+                <li key={item.id}>{item.nome}</li>
               ))}
             </ul>
           </Card.Body>
@@ -164,22 +205,18 @@ export default function Movimentos() {
         className="d-flex justify-content-center overflow-auto mb-4"
         style={{ gap: "1rem" }}
       >
-        {opcoesMovimentosEstoque
-          .filter(
-            (opcao) => produtosOcupacao.length > 0 || opcao.tipo === "entrada"
-          )
-          .map((opcao) => (
-            <Card
-              key={opcao.tipo}
-              onClick={() => setSelecionado(opcao)}
-              className={`flex-shrink-0 ${
-                selecionado === opcao ? "border-primary" : ""
-              }`}
-              style={{ width: "10rem", cursor: "pointer" }}
-            >
-              <Card.Body className="p-2 text-center">{opcao.nome}</Card.Body>
-            </Card>
-          ))}
+        {opcoesMovimentosEstoque.map((opcao) => (
+          <Card
+            className={`flex-shrink-0 ${
+              selecionado?.tipo === opcao.tipo ? "border-primary" : ""
+            }`}
+            key={opcao.tipo}
+            onClick={() => setSelecionado(opcao)}
+            style={{ width: "10rem", cursor: "pointer" }}
+          >
+            <Card.Body className="p-2 text-center">{opcao.nome}</Card.Body>
+          </Card>
+        ))}
       </div>
 
       {/* Formulário conforme seleção */}

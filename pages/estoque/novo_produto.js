@@ -24,7 +24,7 @@ export default function NovoProduto() {
     // Exemplo: fetch('/api/produtos', { method: 'POST', body: JSON.stringify(data) });
 
     // Redireciona para a página de produtos após o envio
-    Router.push("/estoque/produtos");
+    Router.push("/estoque/movimentos?");
   };
 
   return (
