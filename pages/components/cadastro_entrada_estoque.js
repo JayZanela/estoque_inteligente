@@ -13,6 +13,7 @@ export default function CadastroEntradaEstoque({
   const [motivo, setMotivo] = useState(null);
   const [enderecoFormato, setEnderecoFormato] = useState(false);
   const [enderecoExiste, setEnderecoExiste] = useState(true);
+  const [dadosEndereco, setDadosENdereco] = useState(null);
 
   const motivos = ["Inventário", "Compra", "Venda", "Devolução"];
   let resultSubmit = null;
@@ -41,6 +42,7 @@ export default function CadastroEntradaEstoque({
   const { sku, nome } = produtoBuscado.produto;
 
   const handleEndereco = async () => {
+    setDadosENdereco(null);
     const reqBuscaEndereco = await fetch("/api/estoque/busca_endereco", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,7 +52,9 @@ export default function CadastroEntradaEstoque({
     if (!reqBuscaEndereco.ok) {
       return setEnderecoExiste(false);
     }
+    const dados = await reqBuscaEndereco.json(); // <-- Aguarda o resultado
     setEnderecoExiste(true);
+    setDadosENdereco(dados);
   };
 
   const handleSubmit = async (e) => {
@@ -59,11 +63,22 @@ export default function CadastroEntradaEstoque({
     if (!enderecoExiste || !enderecoFormato) {
       return (resultSubmit = { codigo: 400, mensagem: "Parametros Inválidos" });
     }
+    const parametroEntrada = await {
+      param: {
+        endereco: dadosEndereco.data.endereco,
+        quantidade: quantidade,
+        responsavel_id: null,
+        documento_id: null,
+        motivo: motivo,
+        observacoes: "Ocupação aberta a partir de um salvamento de entrada.",
+        produtos_id: produtoBuscado.produto.id,
+      },
+    };
 
-    const reqEntrada = await fetch("api/movimentos/entrada_produto", {
+    const reqEntrada = await fetch("/api/movimentos/entrada_produto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(),
+      body: JSON.stringify(parametroEntrada),
     });
 
     if (!reqEntrada.ok) {

@@ -18,6 +18,7 @@ export default function FormularioProduto({ codigo_Barras }) {
     message: "Preencha Todos os campos.",
     is: false,
   });
+  const [novoProduto, setNovoProduto] = useState({});
 
   // Função para buscar modelos existentes
   const busca_modelos = async () => {
@@ -111,8 +112,6 @@ export default function FormularioProduto({ codigo_Barras }) {
       codigo_barras: codigo_Barras,
     };
 
-    let novoProduto = null;
-
     try {
       const response = await fetch(
         "/api/nocodb_integraction/products/insertNewProduct_estoque",
@@ -125,13 +124,15 @@ export default function FormularioProduto({ codigo_Barras }) {
         }
       );
       if (response.ok) {
-        novoProduto = await response.json();
+        const repsonseJson = await response.json();
+        setNovoProduto(repsonseJson);
         setResultadoSave({
           status: 200,
           message: "Produto criado com sucesso! Redirecionando...",
           is: true,
         });
-        console.log("Novo produto criado:", novoProduto);
+        console.log("Novo produto criado:", repsonseJson);
+        router.push(`/estoque/movimentos?produtoId=${repsonseJson.id}`);
       } else {
         const errorData = await response.json();
         setResultadoSave({
@@ -147,11 +148,8 @@ export default function FormularioProduto({ codigo_Barras }) {
         message: "Erro interno ao criar produto.",
         is: false,
       });
-    }
-    setLoading(false);
-    if (novoProduto) {
-      // Redireciona para a página de produtos após o envio
-      router.push("/estoque/movimentos");
+    } finally {
+      setLoading(false);
     }
   };
 

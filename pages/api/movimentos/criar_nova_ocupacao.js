@@ -6,10 +6,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const param = req.body;
-  const { quantidade, observacoes, lote_id } = param;
-
   try {
+    const param = req.body.param;
+    console.log(param);
+    const { quantidade, observacoes, lote_id } = param;
+
+    console.log(quantidade, observacoes, lote_id);
     // Verifica se a posição de estoque existe para o destino
     const gerarNovaOcupacao = await prisma.ocupacoes_estoque.create({
       data: {

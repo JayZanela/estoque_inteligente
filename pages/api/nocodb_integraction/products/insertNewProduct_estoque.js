@@ -107,7 +107,7 @@ export default async function handler(req, res) {
         .status(definir_sku_item.status)
         .json({ error: `${definir_sku_item.error}` });
     }
-
+    console.log(inserirRegistro.produto);
     res.status(200).json(inserirRegistro.produto);
   } else {
     res.setHeader("Allow", ["POST"]);

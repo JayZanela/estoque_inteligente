@@ -19,12 +19,6 @@ export default function NovoProduto() {
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
     console.log(data);
-
-    // Aqui você pode fazer uma requisição para a API ou qualquer outra lógica
-    // Exemplo: fetch('/api/produtos', { method: 'POST', body: JSON.stringify(data) });
-
-    // Redireciona para a página de produtos após o envio
-    Router.push("/estoque/movimentos?");
   };
 
   return (

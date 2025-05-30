@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function handler(req, res) {
+  const baseUrl = process.env.API_BASE_URL || "http://localhost:3000";
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -14,8 +15,17 @@ export default async function handler(req, res) {
     motivo = "Inventário",
     observacoes,
     produtos_id,
-  } = req.body;
+  } = req.body.param;
 
+  console.log(
+    endereco,
+    quantidade,
+    responsavel_id,
+    documento_id,
+    motivo,
+    observacoes,
+    produtos_id
+  );
   if (!quantidade || !endereco || !produtos_id) {
     return res
       .status(400)
@@ -24,13 +34,16 @@ export default async function handler(req, res) {
 
   try {
     // Verifica se a posição de estoque existe para o destino
-    const novaOcupacao = await fetch("/api/movimentos/definir_ocupacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        param: { endereco: endereco },
-      }),
-    });
+    const novaOcupacao = await fetch(
+      `${baseUrl}/api/movimentos/definir_ocupacao`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          param: { endereco: endereco },
+        }),
+      }
+    );
     if (!novaOcupacao.ok) {
       const erro = await novaOcupacao.json();
       return res
@@ -39,34 +52,44 @@ export default async function handler(req, res) {
     }
     const dataNovaOcupacao = await novaOcupacao.json();
 
+    console.log(dataNovaOcupacao.data.id);
+
     await prisma.ocupacoes_estoque.update({
-      where: { id: ocupacaoDestinoId },
+      where: { id: dataNovaOcupacao.data.ocupacoes_estoque_id1 },
       data: {
         quantidade: {
-          increment: quantidade,
+          increment: parseInt(quantidade),
         },
       },
     });
+    console.log(produtos_id, dataNovaOcupacao.data.ocupacoes_estoque_id1);
     // Relaciona a nova ocupação com o produto
     const relacionarOcupacao =
       await prisma.nc_m2m_ocupacoes_estoq_produtos.create({
         data: {
           produtos_id: parseInt(produtos_id),
           ocupacoes_estoque_id: parseInt(
-            dataNovaOcupacao.ocupacoes_estoque_id1
+            dataNovaOcupacao.data.ocupacoes_estoque_id1
           ),
         },
       });
-
-    // Atualiza a posição de estoque para apontar para a nova ocupação
-    const atualizarOccupacao = await prisma.posicoes_estoque.update({
-      where: { endereco: endereco },
-      data: { ocupacoes_estoque_id1: dataNovaOcupacao.ocupacoes_estoque_id1 },
-    });
-
+    console.log("RELACIONADO!!!!!!!");
     // Cria a movimentação de entrada
+    console.log(
+      [
+        "MOVIMENTO",
+        "origem_id:" + null,
+        "destino_id:" + dataNovaOcupacao.data.ocupacoes_estoque_id1,
+        "tipo:Entrada",
+        "quantidade:" + parseInt(quantidade),
+        "responsavel_id:" + (responsavel_id || "null"),
+        "documento_id:" + (documento_id || "null"),
+        "motivo:" + motivo,
+        "observacoes:" + (observacoes || "null"),
+      ].join(" | ")
+    );
     const movimentacao_criada = await fetch(
-      `/api/movimentos/cria_movimentacao`,
+      `${baseUrl}/api/movimentos/cria_movimentacao`,
       {
         method: "POST",
         headers: {
@@ -74,10 +97,10 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           movimento: {
-            ocupacao_origem_id: ocupacao_origem_id || null,
-            ocupacao_destino_id: idocupacao_estoque,
-            tipo: tipo,
-            quantidade,
+            ocupacao_origem_id: 1,
+            ocupacao_destino_id: dataNovaOcupacao.data.ocupacoes_estoque_id1,
+            tipo: "Entrada",
+            quantidade: parseInt(quantidade),
             responsavel_id: responsavel_id || null,
             documento_id: documento_id || null,
             motivo: motivo,
@@ -90,9 +113,8 @@ export default async function handler(req, res) {
     // Retorna os dados da movimentação, nova ocupação e relacionamentos
     const retorno = {
       movimentacao: movimentacao_criada,
-      ocupacao: gerarNovaOcupacao,
+      ocupacao: dataNovaOcupacao,
       relacionarOcupacao: relacionarOcupacao,
-      atualizarOccupacao: atualizarOccupacao,
     };
 
     res.status(201).json(retorno);
