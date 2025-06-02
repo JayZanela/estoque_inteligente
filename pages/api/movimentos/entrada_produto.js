@@ -11,10 +11,9 @@ export default async function handler(req, res) {
     endereco,
     quantidade,
     responsavel_id,
-    documento_id,
-    motivo = "Inventário",
+    motivo,
     observacoes,
-    produtos_id,
+    produto_id,
   } = req.body.param;
 
   console.log(

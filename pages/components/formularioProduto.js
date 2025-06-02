@@ -3,7 +3,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
-import { buscarModelosExistentes } from "@/lib/utils/buscar_modelos_existentes";
 import Loading from "./loading";
 
 export default function FormularioProduto({ codigo_Barras }) {
@@ -114,7 +113,7 @@ export default function FormularioProduto({ codigo_Barras }) {
 
     try {
       const response = await fetch(
-        "/api/nocodb_integraction/products/insertNewProduct_estoque",
+        "/api/nocodb_integraction/products/inserirProdutoNovo",
         {
           method: "POST",
           headers: {

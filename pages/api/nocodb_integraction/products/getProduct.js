@@ -1,4 +1,4 @@
-import { prisma } from "../../../../lib/prisma";
+import { BuscarProduto } from "@/lib/utils/funcoes_gets_produtos";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -14,11 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const produto_find = await prisma.produtos.findUnique({
-      where: {
-        id: parseInt(id_product),
-      },
-    });
+    const produto_find = await BuscarProduto(id_product);
 
     if (!produto_find) {
       return res.status(404).json({ error: "Produto não encontrado." });
