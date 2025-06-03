@@ -1,8 +1,5 @@
 import { prisma } from "../../../../lib/prisma";
 import { OpenAI } from "openai";
-import { buscarSubCategoria } from "../../../../lib/utils/funcao_Busca_subCategoria";
-import { atualizarProduto } from "../../../../lib/utils/funcao_update_produtos";
-import { traduzJsonProduto } from "../../../../lib/utils/funcao_traduz_json";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
