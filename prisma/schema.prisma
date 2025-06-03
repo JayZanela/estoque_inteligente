@@ -83,6 +83,7 @@ model ocupacoes_estoque {
   nc_m2m_ocupacoes_estoq_produtos                                    nc_m2m_ocupacoes_estoq_produtos[]
   movimentacoes_movimentacoes_ocupacao_destino_idToocupacoes_estoque movimentacoes[]                   @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque")
   movimentacoes_movimentacoes_ocupacao_origem_idToocupacoes_estoque  movimentacoes[]                   @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque")
+  ocupacao_posicao                                                   ocupacao_posicao[]
   posicoes_estoque                                                   posicoes_estoque?
 }
 
@@ -96,6 +97,7 @@ model posicoes_estoque {
   capacidade_maxima     Int?
   tipo_posicao          String?            @default("Padrão")
   ocupacoes_estoque_id1 Int?               @unique
+  ocupacao_posicao      ocupacao_posicao[]
   ocupacoes_estoque     ocupacoes_estoque? @relation(fields: [ocupacoes_estoque_id1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ocupacoes__posicoes_e_zjm6vl2vx2")
 
   @@index([ocupacoes_estoque_id1], map: "fk_ocupacoes__posicoes_e_8a6t1npxaj")
@@ -161,4 +163,13 @@ model produtos_modelos_moto {
   produtos       produtos     @relation(fields: [produto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_produto")
 
   @@unique([produto_id, modelo_moto_id], map: "produtos_modelos_moto_unique")
+}
+
+model ocupacao_posicao {
+  ocupacao_id       Int
+  posicao_id        Int
+  ocupacoes_estoque ocupacoes_estoque @relation(fields: [ocupacao_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ocupacao")
+  posicoes_estoque  posicoes_estoque  @relation(fields: [posicao_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_posicao")
+
+  @@id([ocupacao_id, posicao_id])
 }
