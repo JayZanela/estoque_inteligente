@@ -1,12 +1,16 @@
+import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
   relacionaOcupacaoeProduto,
   atualizarQuantidadeOcupacao,
   verificarOcupacaoProduto,
+  relacionaOcupacaoaPosicao
 } from "@/lib/utils/funcoes_ocupacoes";
 
 export default async function handler(req, res) {
+  
+  //Entrada 1. - validações iniciais
   let ocupacaoExistente = false;
   let detalhesOcupacao = {};
 
@@ -45,21 +49,32 @@ export default async function handler(req, res) {
     });
   }
 
+  //Entrada 1.0 -> Verificando se tem aluma ocupação relacioanda a quela ocupação.
   const ocupacaoJaExistente = await verificarOcupacaoProduto(produto_id);
 
   if (ocupacaoJaExistente.status === 200 && ocupacaoJaExistente.data) {
     ocupacaoExistente = true;
     detalhesOcupacao = ocupacaoExistente.data;
   } else {
+    //Entrada 1.1.0
     const gerarNovaOcupacao = await criar_nova_ocupacao(
       quantidade,
       observacoes,
       0
-    );
+    )
     if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
       return res.status(gerarNovaOcupacao.status).json(gerarNovaOcupacao.error);
+    
     }
-
-    detalhesOcupacao = gerarNovaOcupacao.data;
+    
+detalhesOcupacao = gerarNovaOcupacao.data;
+    const relacionandoOcupacaoaPosicao = await relacionaOcupacaoaPosicao()
   }
+
+  if (!ocupacaoExistente) {
+    const relacionaOcupacaoaPosicao = await 
+
+  }
+
+
 }
