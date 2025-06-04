@@ -1,25 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export function HeaderLayout({ onBarcodeInput }) {
   const [searchValue, setSearchValue] = useState("")
+  console.log('Renderizando HeaderLayout')
 
-  const handleBarcodeInput = (e) => {
-    const value = e.target.value
-    setSearchValue(value)
-
-    // Callback para o componente pai
-    if (onBarcodeInput) {
-      onBarcodeInput(value)
+  useEffect(() => {
+    if (searchValue) {
+      console.log("Valor detectado via useEffect:", searchValue)
+      if (onBarcodeInput) {
+        onBarcodeInput(searchValue)
+      }
     }
-
-    // Aqui você pode adicionar lógica específica para códigos de barras
-    // Por exemplo, detectar quando um código completo foi inserido
-  }
+  }, [searchValue, onBarcodeInput])
 
   return (
     <div className="border-b border-green-800/20 bg-slate-950/50 p-6">
@@ -33,7 +30,7 @@ export function HeaderLayout({ onBarcodeInput }) {
             type="text"
             placeholder="Digite ou escaneie código de barras..."
             value={searchValue}
-            onChange={handleBarcodeInput}
+            onInput={(e) => setSearchValue(e.target.value)}
             autoFocus
             className="pl-10 h-12 text-lg bg-slate-800 border-green-800/30 focus:border-green-500 focus:ring-green-500/20 text-white placeholder:text-slate-400"
           />

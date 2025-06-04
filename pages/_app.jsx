@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { Input } from "@/components/ui/input"
 import { AppSidebar } from "@/components/sidebar-layout";
 import { HeaderLayout } from "@/components/header-layout";
 import "../styles/globals.css" // ou o caminho para seu CSS com Tailwind
@@ -47,13 +48,18 @@ function MainContent() {
   ];
 
   return (
-    <div className="flex-1 bg-slate-900 min-h-screen">
+    <div className="min-h-screen w-screen flex-1 bg-slate-900 ">
       {/* Header */}
       <HeaderLayout onBarcodeInput={handleBarcodeInput} />
+      <input
+  type="text"
+  onChange={() => console.log("Chamado")}
+  className="text-black"
+/>
 
       {/* Conteúdo principal */}
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="p-2">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
               Sistema de Gestão de Estoque
