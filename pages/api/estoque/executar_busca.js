@@ -26,7 +26,8 @@ export default async function handler(req, res) {
   const validadores = {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
-    busca_movimentos_like:  (param) => param.colunasParam && param.termoParam,
+    busca_movimentos_like: (param) => param.colunasParam && param.termoParam,
+    busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
     // adicione outras funções aqui
   };
 
@@ -117,8 +118,7 @@ export default async function handler(req, res) {
     return res.status(200).json(execBuscaProdutos.data);
   }
 
-
-
+  //Etapa 1.2 -> Executar busca_movimentos_like
   if (funcao === "busca_movimentos_like") {
     if (param.colunasParam.length <= 0) {
       return res.status(403).json({ error: "Zero Colunas Para Busca." });
@@ -126,17 +126,43 @@ export default async function handler(req, res) {
     const paramLike = {
       OR: param.colunasParam.map((campo) => ({
         [campo]: {
-          contains: param.termoParam
+          contains: param.termoParam,
         },
       })),
     };
 
     const execBuscaMovimentos = await buscarMovimentos(paramLike);
     if (execBuscaMovimentos.status !== 200) {
-      return res.status(execBuscaMovimentos.status).json(execBuscaMovimentos.error);
+      return res
+        .status(execBuscaMovimentos.status)
+        .json(execBuscaMovimentos.error);
     }
 
-
     return res.status(200).json(execBuscaMovimentos.data);
+  }
+
+  //Etapa 1.2 -> Executar busca_movimentos_like
+  if (funcao === "busca_movimentos_equals") {
+    if (param.colunasParam.length <= 0) {
+      return res
+        .status(403)
+        .json({ error: "Zero Colunas Para Busca Numerica." });
+    }
+    const paramEqual = {
+      OR: param.colunasParam.map((campo) => ({
+        [campo]: {
+          equals: Number(param.termoParam),
+        },
+      })),
+    };
+
+    const execBuscaMovimentosEqual = await buscarMovimentos(paramEqual);
+    if (execBuscaMovimentosEqual.status !== 200) {
+      return res
+        .status(execBuscaMovimentosEqual.status)
+        .json(execBuscaMovimentosEqual.error);
+    }
+
+    return res.status(200).json(execBuscaMovimentosEqual.data);
   }
 }
