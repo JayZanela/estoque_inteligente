@@ -26,6 +26,7 @@ export default async function handler(req, res) {
   const validadores = {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
+    busca_movimentos_like:  (param) => param.colunasParam && param.termoParam,
     // adicione outras funções aqui
   };
 
@@ -125,8 +126,7 @@ export default async function handler(req, res) {
     const paramLike = {
       OR: param.colunasParam.map((campo) => ({
         [campo]: {
-          contains: param.termoParam,
-          mode: "insensitive",
+          contains: param.termoParam
         },
       })),
     };
@@ -135,6 +135,7 @@ export default async function handler(req, res) {
     if (execBuscaMovimentos.status !== 200) {
       return res.status(execBuscaMovimentos.status).json(execBuscaMovimentos.error);
     }
+
 
     return res.status(200).json(execBuscaMovimentos.data);
   }
