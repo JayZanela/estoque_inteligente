@@ -1,5 +1,5 @@
 import { criarDado } from "@/lib/db/actions";
-import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
+import { buscarMovimentos } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
   relacionaOcupacaoeProduto,
@@ -108,11 +108,34 @@ export default async function handler(req, res) {
       })),
     };
 
-    const execBuscaEndereco = await BuscarProdutos(paramLike);
-    if (execBuscaEndereco.status !== 200) {
-      return res.status(execBuscaEndereco.status).json(execBuscaEndereco.error);
+    const execBuscaProdutos = await BuscarProdutos(paramLike);
+    if (execBuscaProdutos.status !== 200) {
+      return res.status(execBuscaProdutos.status).json(execBuscaProdutos.error);
     }
 
-    return res.status(200).json(execBuscaEndereco.data);
+    return res.status(200).json(execBuscaProdutos.data);
+  }
+}
+
+
+  if (funcao === "busca_movimentos_like") {
+    if (param.colunasParam.length <= 0) {
+      return res.status(403).json({ error: "Zero Colunas Para Busca." });
+    }
+    const paramLike = {
+      OR: param.colunasParam.map((campo) => ({
+        [campo]: {
+          contains: param.termoParam,
+          mode: "insensitive",
+        },
+      })),
+    };
+
+    const execBuscaMovimentos = await buscarMovimentos(paramLike);
+    if (execBuscaMovimentos.status !== 200) {
+      return res.status(execBuscaMovimentos.status).json(execBuscaMovimentos.error);
+    }
+
+    return res.status(200).json(execBuscaMovimentos.data);
   }
 }
