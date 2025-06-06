@@ -8,6 +8,7 @@ import {
   relacionaOcupacaoaPosicao,
   verificarOcupacaoPosicao,
   buscarProdutosdaOcupacao,
+  buscaOcupacoesEndereco,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
     }
 
     const dataEndereco = await execBuscaEndereco.data;
-    const execBuscaOcupacoesPosicao = await verificarOcupacaoPosicao(
+    const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
       dataEndereco.id
     );
 
@@ -71,6 +72,8 @@ export default async function handler(req, res) {
     const produtosDetalhados = [];
 
     for (const ocupacao of dataOcupacaoPosicao) {
+      produtosDetalhados.push(ocupacao);
+      continue;
       const produtosOcupantes = await buscarProdutosdaOcupacao(
         ocupacao.ocupacao_id
       );
@@ -83,7 +86,6 @@ export default async function handler(req, res) {
           .json(produtosOcupantes.error);
       }
       if (produtosOcupantes.status === 200) {
-        produtosDetalhados.push(produtosOcupantes.data);
       }
     }
 

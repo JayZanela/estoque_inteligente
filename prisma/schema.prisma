@@ -80,25 +80,30 @@ model ocupacoes_estoque {
   quantidade                                                         Int
   data_alocacao                                                      DateTime?                         @default(now()) @db.Timestamp(6)
   observacoes                                                        String?
+  produto_id                                                         Int?
+  posicao_id                                                         Int?
   nc_m2m_ocupacoes_estoq_produtos                                    nc_m2m_ocupacoes_estoq_produtos[]
   movimentacoes_movimentacoes_ocupacao_destino_idToocupacoes_estoque movimentacoes[]                   @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque")
   movimentacoes_movimentacoes_ocupacao_origem_idToocupacoes_estoque  movimentacoes[]                   @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque")
   ocupacao_posicao                                                   ocupacao_posicao[]
+  posicoes_estoque_ocupacoes_estoque_posicao_idToposicoes_estoque    posicoes_estoque?                 @relation("ocupacoes_estoque_posicao_idToposicoes_estoque", fields: [posicao_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  produtos                                                           produtos?                         @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   posicoes_estoque                                                   posicoes_estoque?
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model posicoes_estoque {
-  id                    Int                @id @default(autoincrement())
-  endereco              String
-  status                String?            @default("Livre")
-  ultima_movimentacao   DateTime?          @db.Timestamp(6)
-  observacoes           String?
-  capacidade_maxima     Int?
-  tipo_posicao          String?            @default("Padrão")
-  ocupacoes_estoque_id1 Int?               @unique
-  ocupacao_posicao      ocupacao_posicao[]
-  ocupacoes_estoque     ocupacoes_estoque? @relation(fields: [ocupacoes_estoque_id1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ocupacoes__posicoes_e_zjm6vl2vx2")
+  id                                                               Int                 @id @default(autoincrement())
+  endereco                                                         String
+  status                                                           String?             @default("Livre")
+  ultima_movimentacao                                              DateTime?           @db.Timestamp(6)
+  observacoes                                                      String?
+  capacidade_maxima                                                Int?
+  tipo_posicao                                                     String?             @default("Padrão")
+  ocupacoes_estoque_id1                                            Int?                @unique
+  ocupacao_posicao                                                 ocupacao_posicao[]
+  ocupacoes_estoque_ocupacoes_estoque_posicao_idToposicoes_estoque ocupacoes_estoque[] @relation("ocupacoes_estoque_posicao_idToposicoes_estoque")
+  ocupacoes_estoque                                                ocupacoes_estoque?  @relation(fields: [ocupacoes_estoque_id1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ocupacoes__posicoes_e_zjm6vl2vx2")
 
   @@index([ocupacoes_estoque_id1], map: "fk_ocupacoes__posicoes_e_8a6t1npxaj")
 }
@@ -128,6 +133,7 @@ model produtos {
   imagem_url                      String?
   nc_m2m_ocupacoes_estoq_produtos nc_m2m_ocupacoes_estoq_produtos[]
   codigos_barras_produto          codigos_barras_produto[]
+  ocupacoes_estoque               ocupacoes_estoque[]
   categorias                      categorias?                       @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   subcategorias                   subcategorias?                    @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   produtos_modelos_moto           produtos_modelos_moto[]
