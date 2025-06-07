@@ -15,6 +15,7 @@ import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 export default async function handler(req, res) {
   let detalhesOcupacaoDestino = {};
   let detalhesOcupacaoOrigem = {};
+  let detalhesEnderedoDE = {};
   let idEnderecoOrigem = null;
   let idEnderecoDestino = null;
   let ocupacaoXProduto = false;
@@ -25,7 +26,6 @@ export default async function handler(req, res) {
 
   const {
     endereco_de,
-    endereco_para,
     quantidade,
     responsavel_id,
     motivo,
@@ -35,7 +35,6 @@ export default async function handler(req, res) {
 
   if (
     !endereco_de ||
-    !endereco_para ||
     typeof quantidade !== "number" ||
     quantidade <= 0 ||
     !responsavel_id ||
@@ -49,25 +48,27 @@ export default async function handler(req, res) {
         "Parâmetros inválidos. Verifique se todos os campos obrigatórios foram preenchidos corretamente.",
       detalhes: {
         endereco_de: !!endereco_de,
-        endereco_para: !!endereco_para,
         quantidade: quantidade,
         responsavel_id: !!responsavel_id,
         motivo: !!motivo,
         observacoes: observacoes ?? "(opcional)",
-        produto_id: !!produto_id,
+        produto_id: !!produto_id, 
       },
     });
   }
 
+
+  //Etapa 1.0 Buscar Endereço DE 
   const runEnderecoDEExiste = await buscarEndereco(endereco_de);
   if (runEnderecoDEExiste.status !== 200) {
     return res
       .status(runEnderecoDEExiste.status)
       .json({ etapa: "1.0", error: runEnderecoDEExiste.error });
   }
+  detalhesEnderedoDE = await runEnderecoDEExiste.data;
   idEnderecoOrigem = await runEnderecoDEExiste.data.id;
 
-  console.log(idEnderecoOrigem);
+  console.log('LOG 1',idEnderecoOrigem);
 
   const runOcupacoesdoEnderecoDE = await buscaOcupacoesEndereco(
     idEnderecoOrigem
@@ -83,18 +84,18 @@ export default async function handler(req, res) {
       detalhesOcupacaoOrigem = ocupacao.ocupacao;
 
       if (quantidade > ocupacao.ocupacao.quantidade) {
-        res
+        return res
           .status(415)
           .json({
             etapa: "1.0.1",
             error:
-              "Quantidade da Ocupação de Origem é menor que o Solicitado para transferência",
+              "Quantidade da Ocupação de Origem é menor que o Solicitado para Saída",
           });
       }
       break;
     }
   }
-
+/*
   // Etapa 1.0 - Buscar endereço PARA
   const runEnderecoPARAExiste = await buscarEndereco(endereco_para);
   if (runEnderecoPARAExiste.status !== 200) {
@@ -128,7 +129,7 @@ export default async function handler(req, res) {
   }
 
   //Etapa 1.1.1 -> Criar Nova Ocupação
-  if (!ocupacaoXProduto) {
+  /*if (!ocupacaoXProduto) {
     const gerarNovaOcupacao = await criar_nova_ocupacao(
       quantidade,
       observacoes,
@@ -146,7 +147,7 @@ export default async function handler(req, res) {
     detalhesOcupacaoDestino = gerarNovaOcupacao.data;
   }
   //Etapa 1.1.2 -> Atualizar Quantidade da Ocupacao
-  else {
+  /*else {
     console.log(quantidade, detalhesOcupacaoDestino.id);
     const quantidadeAtualziada = await atualizarQuantidadeOcupacao(
       quantidade,
@@ -158,7 +159,7 @@ export default async function handler(req, res) {
         .status(quantidadeAtualziada.status)
         .json({ etapa: "1.1.2", error: quantidadeAtualziada.error });
     }
-  }
+  }*/
 
   const subtrairQuantidade = await subtraiQuantidadeOcupacao(
     quantidade,
@@ -173,23 +174,23 @@ export default async function handler(req, res) {
 
   const parametroMovimento = {
     ocupacao_origem_id: detalhesOcupacaoOrigem.id, // Ajuste se necessário
-    ocupacao_destino_id: detalhesOcupacaoDestino.id,
-    tipo: "Transferência",
+    ocupacao_destino_id: 2,
+    tipo: "Saída",
     quantidade: quantidade,
     responsavel_id: responsavel_id,
     documento_id: null,
     motivo: motivo,
     observacoes: observacoes ?? "",
-    endereco_id: detalhesEnderecoPARA.id,
+    endereco_id: idEnderecoOrigem,
   };
 
-  //Etapa 1.2 -> Registra movimentação executada.
-  const registraMovimentoTransferencia = await criaMovimentacao(parametroMovimento);
+  //Etapa 1.2 -> Registra movimentação executada. 
+  const registraMovimentoSaida = await criaMovimentacao(parametroMovimento);
 
-  if (registraMovimentoTransferencia.status !== 200) {
-    return res.status(registraMovimentoTransferencia.status).json({
+  if (registraMovimentoSaida.status !== 200) {
+    return res.status(registraMovimentoSaida.status).json({
       etapa: "1.2",
-      error: registraMovimentoTransferencia.error,
+      error: registraMovimentoSaida.error,
     });
   }
   return res.status(200).json({
@@ -197,7 +198,6 @@ export default async function handler(req, res) {
     status: 200,
     mensagem: "Movimentação registrada com sucesso.",
     ocupacao_origem: detalhesOcupacaoOrigem,
-    ocupacao_destino: detalhesOcupacaoDestino,
-    movimento: registraMovimentoTransferencia.message,
+    movimento: registraMovimentoSaida.message,
   });
 }
