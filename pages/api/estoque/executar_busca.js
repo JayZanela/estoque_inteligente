@@ -51,6 +51,8 @@ export default async function handler(req, res) {
   if (funcao === "busca_endereco_unico") {
     const execBuscaEndereco = await buscarEndereco(param.enderecoParam);
 
+    console.log(`LOG BUSCA UNICA 1` + execBuscaEndereco);
+
     if (execBuscaEndereco.status !== 200) {
       return res.status(execBuscaEndereco.status).json(execBuscaEndereco.error);
     }
@@ -59,6 +61,8 @@ export default async function handler(req, res) {
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
       dataEndereco.id
     );
+
+    console.log(`LOG BUSCA UNICA 2` + execBuscaOcupacoesPosicao);
 
     if (execBuscaOcupacoesPosicao.status !== 200) {
       return res
