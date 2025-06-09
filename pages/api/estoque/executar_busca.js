@@ -57,6 +57,8 @@ export default async function handler(req, res) {
     }
 
     const dataEndereco = await execBuscaEndereco.data;
+
+    /*
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
       dataEndereco.id
     );
