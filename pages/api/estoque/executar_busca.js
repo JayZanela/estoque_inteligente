@@ -50,6 +50,7 @@ export default async function handler(req, res) {
 
   if (funcao === "busca_endereco_unico") {
     const execBuscaEndereco = await buscarEndereco(param.enderecoParam);
+    let produtosDetalhados = [];
     //const execBuscaEndereco = await buscarEndereco(param.enderecoParam?);
 
     if (execBuscaEndereco.status !== 200) {
@@ -58,22 +59,17 @@ export default async function handler(req, res) {
 
     const dataEndereco = await execBuscaEndereco.data;
 
-    /*
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
       dataEndereco.id
     );
 
     if (execBuscaOcupacoesPosicao.status !== 200) {
-      return res
-        .status(execBuscaOcupacoesPosicao.status)
-        .json(execBuscaOcupacoesPosicao.error);
-    } /*else {
+    } else {
       const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
       console.log(dataOcupacaoPosicao);
 
       for (const ocupacao of dataOcupacaoPosicao) {
         produtosDetalhados.push(ocupacao);
-        continue;
         const produtosOcupantes = await buscarProdutosdaOcupacao(
           ocupacao.ocupacao_id
         );
@@ -88,10 +84,11 @@ export default async function handler(req, res) {
         if (produtosOcupantes.status === 200) {
         }
       }
-      }*/
+    }
 
     const resultJson = {
       endereco: execBuscaEndereco.data,
+      produtos: produtosDetalhados,
     };
 
     return res.status(200).json(resultJson);
