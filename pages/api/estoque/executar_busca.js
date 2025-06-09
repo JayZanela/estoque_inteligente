@@ -27,7 +27,6 @@ export default async function handler(req, res) {
   const validadores = {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
-    busca_movimentos_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
     // adicione outras funções aqui
   };
@@ -37,19 +36,21 @@ export default async function handler(req, res) {
 
   console.log(req.body);
 
-  if (!validadores[funcao]) {
+  /*
+  if (!validadores[funcao] && funcao !== 'busca_movimentos_like') {
     return res.status(402).json({ error: "Função inválida" });
   }
-  if (!validadores[funcao](param)) {
+  if (!validadores[funcao](param) && funcao !== 'busca_movimentos_like') {
     return res
       .status(401)
       .json({ error: "Parâmetros inválidos para a função " + funcao });
   }
-
+*/
   //Etapa 1.0 -> Executar a Função busca_endereco_unico
 
   if (funcao === "busca_endereco_unico") {
-    const execBuscaEndereco = await buscarEndereco(param.enderecoParam);
+    const execBuscaEndereco = await buscarEndereco();
+    //const execBuscaEndereco = await buscarEndereco(param.enderecoParam?);
 
     console.log(`LOG BUSCA UNICA 1` + execBuscaEndereco);
 
@@ -68,28 +69,26 @@ export default async function handler(req, res) {
       return res
         .status(execBuscaOcupacoesPosicao.status)
         .json(execBuscaOcupacoesPosicao.error);
-    }
+    } else {
+      const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
+      console.log(dataOcupacaoPosicao);
 
-    const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
-    console.log(dataOcupacaoPosicao);
+      for (const ocupacao of dataOcupacaoPosicao) {
+        produtosDetalhados.push(ocupacao);
+        continue;
+        const produtosOcupantes = await buscarProdutosdaOcupacao(
+          ocupacao.ocupacao_id
+        );
 
-    const produtosDetalhados = [];
+        console.log(produtosOcupantes);
 
-    for (const ocupacao of dataOcupacaoPosicao) {
-      produtosDetalhados.push(ocupacao);
-      continue;
-      const produtosOcupantes = await buscarProdutosdaOcupacao(
-        ocupacao.ocupacao_id
-      );
-
-      console.log(produtosOcupantes);
-
-      if (produtosOcupantes.status !== 200) {
-        return res
-          .status(produtosOcupantes.status)
-          .json(produtosOcupantes.error);
-      }
-      if (produtosOcupantes.status === 200) {
+        if (produtosOcupantes.status !== 200) {
+          return res
+            .status(produtosOcupantes.status)
+            .json(produtosOcupantes.error);
+        }
+        if (produtosOcupantes.status === 200) {
+        }
       }
     }
 
@@ -126,16 +125,15 @@ export default async function handler(req, res) {
 
   //Etapa 1.2 -> Executar busca_movimentos_like
   if (funcao === "busca_movimentos_like") {
-    if (param.colunasParam.length <= 0) {
-      return res.status(403).json({ error: "Zero Colunas Para Busca." });
-    }
-    const paramLike = {
-      OR: param.colunasParam.map((campo) => ({
-        [campo]: {
-          contains: param.termoParam,
-        },
-      })),
-    };
+    const paramLike = param
+      ? {
+          OR: param.colunasParam.map((campo) => ({
+            [campo]: {
+              contains: param.termoParam,
+            },
+          })),
+        }
+      : null;
 
     const execBuscaMovimentos = await buscarMovimentos(paramLike);
     if (execBuscaMovimentos.status !== 200) {

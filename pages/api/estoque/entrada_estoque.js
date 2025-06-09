@@ -68,13 +68,13 @@ export default async function handler(req, res) {
   const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
     detalhesEndereco.id
   );
-  if (runOcupacoesdoEndereco.status !== 200) {
+  if (runOcupacoesdoEndereco.status !== 200 && runOcupacoesdoEndereco.status !== 406 ) {
     return res
       .status(runOcupacoesdoEndereco.status)
       .json({ etapa: "1.1", error: runOcupacoesdoEndereco.error });
   }
 
-  for (const ocupacao of runOcupacoesdoEndereco.data) {
+  for (const ocupacao of runOcupacoesdoEndereco.data || []) {
     if (ocupacao.ocupacao.produto_id === produto_id) {
       detalhesOcupacao = ocupacao.ocupacao;
       ocupacaoXProduto = true;
