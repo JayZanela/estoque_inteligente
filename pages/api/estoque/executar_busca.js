@@ -9,6 +9,7 @@ import {
   verificarOcupacaoPosicao,
   buscarProdutosdaOcupacao,
   buscaOcupacoesEndereco,
+  buscarOcupacoesProduto,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
@@ -28,6 +29,7 @@ export default async function handler(req, res) {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
+    busca_ocupacoes_produto: (param) => param.produtoParam,
     // adicione outras funções aqui
   };
 
@@ -162,5 +164,20 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json(execBuscaMovimentosEqual.data);
+  }
+
+  if (funcao === "busca_ocupacoes_produto") {
+    const paramProduto = param.produtoId;
+    const execbuscarOcupacoesProduto = await buscarOcupacoesProduto(
+      paramProduto
+    );
+
+    if (execbuscarOcupacoesProduto.status !== 200) {
+      return res
+        .status(execbuscarOcupacoesProduto.status)
+        .json(execbuscarOcupacoesProduto.error);
+    }
+
+    return res.status(200).json(execbuscarOcupacoesProduto.data);
   }
 }
