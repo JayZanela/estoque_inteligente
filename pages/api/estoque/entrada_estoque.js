@@ -18,6 +18,10 @@ export default async function handler(req, res) {
 
   let ocupacaoXProduto = false;
 
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ etapa: "1", message: "Metodo Inválido" });
   }
@@ -68,7 +72,10 @@ export default async function handler(req, res) {
   const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
     detalhesEndereco.id
   );
-  if (runOcupacoesdoEndereco.status !== 200 && runOcupacoesdoEndereco.status !== 406 ) {
+  if (
+    runOcupacoesdoEndereco.status !== 200 &&
+    runOcupacoesdoEndereco.status !== 406
+  ) {
     return res
       .status(runOcupacoesdoEndereco.status)
       .json({ etapa: "1.1", error: runOcupacoesdoEndereco.error });

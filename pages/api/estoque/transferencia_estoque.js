@@ -19,6 +19,10 @@ export default async function handler(req, res) {
   let idEnderecoDestino = null;
   let ocupacaoXProduto = false;
 
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ etapa: "1", message: "Metodo Inválido" });
   }
@@ -83,13 +87,11 @@ export default async function handler(req, res) {
       detalhesOcupacaoOrigem = ocupacao.ocupacao;
 
       if (quantidade > ocupacao.ocupacao.quantidade) {
-        res
-          .status(415)
-          .json({
-            etapa: "1.0.1",
-            error:
-              "Quantidade da Ocupação de Origem é menor que o Solicitado para transferência",
-          });
+        res.status(415).json({
+          etapa: "1.0.1",
+          error:
+            "Quantidade da Ocupação de Origem é menor que o Solicitado para transferência",
+        });
       }
       break;
     }
@@ -184,7 +186,9 @@ export default async function handler(req, res) {
   };
 
   //Etapa 1.2 -> Registra movimentação executada.
-  const registraMovimentoTransferencia = await criaMovimentacao(parametroMovimento);
+  const registraMovimentoTransferencia = await criaMovimentacao(
+    parametroMovimento
+  );
 
   if (registraMovimentoTransferencia.status !== 200) {
     return res.status(registraMovimentoTransferencia.status).json({

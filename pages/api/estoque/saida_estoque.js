@@ -20,6 +20,10 @@ export default async function handler(req, res) {
   let idEnderecoDestino = null;
   let ocupacaoXProduto = false;
 
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ etapa: "1", message: "Metodo Inválido" });
   }
@@ -52,13 +56,12 @@ export default async function handler(req, res) {
         responsavel_id: !!responsavel_id,
         motivo: !!motivo,
         observacoes: observacoes ?? "(opcional)",
-        produto_id: !!produto_id, 
+        produto_id: !!produto_id,
       },
     });
   }
 
-
-  //Etapa 1.0 Buscar Endereço DE 
+  //Etapa 1.0 Buscar Endereço DE
   const runEnderecoDEExiste = await buscarEndereco(endereco_de);
   if (runEnderecoDEExiste.status !== 200) {
     return res
@@ -68,7 +71,7 @@ export default async function handler(req, res) {
   detalhesEnderedoDE = await runEnderecoDEExiste.data;
   idEnderecoOrigem = await runEnderecoDEExiste.data.id;
 
-  console.log('LOG 1',idEnderecoOrigem);
+  console.log("LOG 1", idEnderecoOrigem);
 
   const runOcupacoesdoEnderecoDE = await buscaOcupacoesEndereco(
     idEnderecoOrigem
@@ -84,18 +87,16 @@ export default async function handler(req, res) {
       detalhesOcupacaoOrigem = ocupacao.ocupacao;
 
       if (quantidade > ocupacao.ocupacao.quantidade) {
-        return res
-          .status(415)
-          .json({
-            etapa: "1.0.1",
-            error:
-              "Quantidade da Ocupação de Origem é menor que o Solicitado para Saída",
-          });
+        return res.status(415).json({
+          etapa: "1.0.1",
+          error:
+            "Quantidade da Ocupação de Origem é menor que o Solicitado para Saída",
+        });
       }
       break;
     }
   }
-/*
+  /*
   // Etapa 1.0 - Buscar endereço PARA
   const runEnderecoPARAExiste = await buscarEndereco(endereco_para);
   if (runEnderecoPARAExiste.status !== 200) {
@@ -184,7 +185,7 @@ export default async function handler(req, res) {
     endereco_id: idEnderecoOrigem,
   };
 
-  //Etapa 1.2 -> Registra movimentação executada. 
+  //Etapa 1.2 -> Registra movimentação executada.
   const registraMovimentoSaida = await criaMovimentacao(parametroMovimento);
 
   if (registraMovimentoSaida.status !== 200) {
