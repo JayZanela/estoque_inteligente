@@ -5,6 +5,10 @@ import {
 } from "@/lib/utils/funcao_insert_produto";
 
 export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -15,20 +19,27 @@ export default async function handler(req, res) {
       descricao,
       tipo_embalagem,
       unidade_medida,
-      modelo,
+      edicao_modelo,
+      nome_modelo,
       codigo_barras,
     } = req.body;
 
     // FIXME: Retirar Log
     console.log("REQ body:", req.body);
-    console.log("Nome do modelo:", modelo);
+    console.log("Nome do modelo:", nome_modelo);
     console.log("Código de barras:", codigo_barras);
     console.log("Tipo de embalagem:", tipo_embalagem);
     console.log("Unidade de medida:", unidade_medida);
     console.log("Nome do produto:", nome);
 
     // Validação simples dos campos
-    if (!nome || !descricao || !tipo_embalagem || !unidade_medida || !modelo) {
+    if (
+      !nome ||
+      !descricao ||
+      !tipo_embalagem ||
+      !unidade_medida ||
+      !nome_modelo
+    ) {
       return res
         .status(400)
         .json({ error: "Todos os campos são obrigatórios." });
@@ -68,7 +79,8 @@ export default async function handler(req, res) {
         .json({ error: `${categorizarInteligente.error}` });
     }
     const vinculaModelos = await relacionarModeloeProduto(
-      modelo,
+      nome_modelo,
+      edicao_modelo,
       id_produtoNovo
     );
 
