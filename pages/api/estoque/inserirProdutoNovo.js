@@ -33,13 +33,7 @@ export default async function handler(req, res) {
     console.log("Nome do produto:", nome);
 
     // Validação simples dos campos
-    if (
-      !nome ||
-      !descricao ||
-      !tipo_embalagem ||
-      !unidade_medida ||
-      !nome_modelo
-    ) {
+    if (!nome || !tipo_embalagem || !unidade_medida || !nome_modelo) {
       return res
         .status(400)
         .json({ error: "Todos os campos são obrigatórios." });
@@ -47,7 +41,6 @@ export default async function handler(req, res) {
 
     const insertInserirProduto = {
       nome,
-      descricao,
       tipo_embalagem,
       unidade_medida,
       codigo_barras: codigo_barras || null,
