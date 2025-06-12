@@ -1,4 +1,3 @@
-import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
@@ -12,9 +11,7 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  let ocupacaoProdutoExiste = false;
   let detalhesOcupacao = {};
-  let ocupacaoXposicaoExiste = false;
 
   let ocupacaoXProduto = false;
 
@@ -42,7 +39,8 @@ export default async function handler(req, res) {
     quantidade <= 0 ||
     !responsavel_id ||
     !motivo ||
-    !produto_id
+    !produto_id ||
+    !montadora_id
   ) {
     return res.status(406).json({
       etapa: "1.0",
@@ -56,12 +54,13 @@ export default async function handler(req, res) {
         motivo: !!motivo,
         observacoes: observacoes ?? "(opcional)",
         produto_id: !!produto_id,
+        montadora_id: !!montadora_id,
       },
     });
   }
 
   // Etapa 1.0 - Buscar endereço
-  const runEnderecoExiste = await buscarEndereco(endereco);
+  const runEnderecoExiste = await buscarEndereco(endereco, montadora_id);
   if (runEnderecoExiste.status !== 200) {
     return res
       .status(runEnderecoExiste.status)

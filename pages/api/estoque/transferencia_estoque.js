@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const runEnderecoDEExiste = await buscarEndereco(endereco_de);
+  const runEnderecoDEExiste = await buscarEndereco(endereco_de, montadora_id);
   if (runEnderecoDEExiste.status !== 200) {
     return res
       .status(runEnderecoDEExiste.status)
@@ -101,7 +101,10 @@ export default async function handler(req, res) {
   }
 
   // Etapa 1.0 - Buscar endereço PARA
-  const runEnderecoPARAExiste = await buscarEndereco(endereco_para);
+  const runEnderecoPARAExiste = await buscarEndereco(
+    endereco_para,
+    montadora_id
+  );
   if (runEnderecoPARAExiste.status !== 200) {
     return res
       .status(runEnderecoPARAExiste.status)

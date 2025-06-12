@@ -1,7 +1,5 @@
-import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
-  criar_nova_ocupacao,
   buscaOcupacoesEndereco,
   subtraiQuantidadeOcupacao,
 } from "@/lib/utils/funcoes_ocupacoes";
@@ -64,7 +62,7 @@ export default async function handler(req, res) {
   }
 
   //Etapa 1.0 Buscar Endereço DE
-  const runEnderecoDEExiste = await buscarEndereco(endereco_de);
+  const runEnderecoDEExiste = await buscarEndereco(endereco_de, montadora_id);
   if (runEnderecoDEExiste.status !== 200) {
     return res
       .status(runEnderecoDEExiste.status)

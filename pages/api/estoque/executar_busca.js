@@ -45,9 +45,11 @@ export default async function handler(req, res) {
   //Etapa 1.0 -> Executar a Função busca_endereco_unico
 
   if (funcao === "busca_endereco_unico") {
-    const execBuscaEndereco = await buscarEndereco(param.enderecoParam);
+    const execBuscaEndereco = await buscarEndereco(
+      param.enderecoParam,
+      param.montadora_id
+    );
     let produtosDetalhados = [];
-    //const execBuscaEndereco = await buscarEndereco(param.enderecoParam?);
 
     if (execBuscaEndereco.status !== 200) {
       return res.status(execBuscaEndereco.status).json(execBuscaEndereco.error);
