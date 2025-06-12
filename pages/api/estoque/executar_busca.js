@@ -22,8 +22,7 @@ export default async function handler(req, res) {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
-    busca_ocupacoes_produto: (param) =>
-      param.produtoParam && param.montadora_id,
+    busca_ocupacoes_produto: (param) => param.produtoParam,
     // adicione outras funções aqui
   };
 
@@ -166,7 +165,7 @@ export default async function handler(req, res) {
 
   if (funcao === "busca_ocupacoes_produto") {
     const paramProduto = param.produtoId;
-    const Montadora = param.montadora_id;
+    const Montadora = montadora;
     const execbuscarOcupacoesProduto = await buscarOcupacoesProduto(
       paramProduto,
       Montadora

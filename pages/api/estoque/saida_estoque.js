@@ -32,8 +32,9 @@ export default async function handler(req, res) {
     motivo,
     observacoes,
     produto_id,
-    montadora_id,
   } = req.body.param;
+
+  const { montadora_id } = req.body.montadora_id;
 
   if (
     (!endereco_de ||
