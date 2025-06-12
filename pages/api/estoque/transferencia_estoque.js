@@ -1,12 +1,7 @@
-import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
-  relacionaOcupacaoeProduto,
   atualizarQuantidadeOcupacao,
-  verificarOcupacaoProduto,
-  relacionaOcupacaoaPosicao,
-  verificarOcupacaoPosicao,
   buscaOcupacoesEndereco,
   subtraiQuantidadeOcupacao,
 } from "@/lib/utils/funcoes_ocupacoes";
@@ -39,6 +34,7 @@ export default async function handler(req, res) {
     motivo,
     observacoes,
     produto_id,
+    montadora_id,
   } = req.body.param;
 
   if (
@@ -48,7 +44,8 @@ export default async function handler(req, res) {
     quantidade <= 0 ||
     !responsavel_id ||
     !motivo ||
-    !produto_id
+    !produto_id ||
+    !montadora_id
   ) {
     return res.status(406).json({
       etapa: "1.0",
@@ -63,6 +60,7 @@ export default async function handler(req, res) {
         motivo: !!motivo,
         observacoes: observacoes ?? "(opcional)",
         produto_id: !!produto_id,
+        montadora_id: !!montadora_id,
       },
     });
   }
@@ -78,7 +76,8 @@ export default async function handler(req, res) {
   console.log(idEnderecoOrigem);
 
   const runOcupacoesdoEnderecoDE = await buscaOcupacoesEndereco(
-    idEnderecoOrigem
+    idEnderecoOrigem,
+    montadora_id
   );
   if (runOcupacoesdoEnderecoDE.status !== 200) {
     return res
@@ -113,7 +112,8 @@ export default async function handler(req, res) {
 
   //Etapa 1.1 - Tenho Ocupações no endereço?
   const runOcupacoesdoEnderecoPARA = await buscaOcupacoesEndereco(
-    idEnderecoDestino
+    idEnderecoDestino,
+    montadora_id
   );
   if (
     runOcupacoesdoEnderecoPARA.status !== 200 &&
@@ -140,7 +140,8 @@ export default async function handler(req, res) {
       observacoes,
       0,
       produto_id,
-      detalhesEnderecoPARA.id
+      detalhesEnderecoPARA.id,
+      montadora_id
     );
     if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
       return res.status(gerarNovaOcupacao.status).json({

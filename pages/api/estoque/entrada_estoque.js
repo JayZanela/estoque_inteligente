@@ -2,11 +2,7 @@ import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
-  relacionaOcupacaoeProduto,
   atualizarQuantidadeOcupacao,
-  verificarOcupacaoProduto,
-  relacionaOcupacaoaPosicao,
-  verificarOcupacaoPosicao,
   buscaOcupacoesEndereco,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
@@ -37,6 +33,7 @@ export default async function handler(req, res) {
     motivo,
     observacoes,
     produto_id,
+    montadora_id,
   } = req.body.param;
 
   if (
@@ -74,7 +71,8 @@ export default async function handler(req, res) {
 
   //Etapa 1.1 - Tenho Ocupações no endereço?
   const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
-    detalhesEndereco.id
+    detalhesEndereco.id,
+    montadora_id
   );
   if (
     runOcupacoesdoEndereco.status !== 200 &&
@@ -100,7 +98,8 @@ export default async function handler(req, res) {
       observacoes,
       0,
       produto_id,
-      detalhesEndereco.id
+      detalhesEndereco.id,
+      montadora_id
     );
     if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
       return res.status(gerarNovaOcupacao.status).json({

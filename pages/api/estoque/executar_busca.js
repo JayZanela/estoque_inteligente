@@ -1,12 +1,5 @@
-import { criarDado } from "@/lib/db/actions";
 import { buscarMovimentos } from "@/lib/utils/funcoes_movimentacoes";
 import {
-  criar_nova_ocupacao,
-  relacionaOcupacaoeProduto,
-  atualizarQuantidadeOcupacao,
-  verificarOcupacaoProduto,
-  relacionaOcupacaoaPosicao,
-  verificarOcupacaoPosicao,
   buscarProdutosdaOcupacao,
   buscaOcupacoesEndereco,
   buscarOcupacoesProduto,
@@ -29,7 +22,8 @@ export default async function handler(req, res) {
     busca_endereco_unico: (param) => param.enderecoParam,
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
-    busca_ocupacoes_produto: (param) => param.produtoParam,
+    busca_ocupacoes_produto: (param) =>
+      param.produtoParam && param.montadora_id,
     // adicione outras funções aqui
   };
 
@@ -62,7 +56,8 @@ export default async function handler(req, res) {
     const dataEndereco = await execBuscaEndereco.data;
 
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
-      dataEndereco.id
+      dataEndereco.id,
+      param.montadora_id
     );
 
     if (execBuscaOcupacoesPosicao.status !== 200) {
@@ -168,8 +163,10 @@ export default async function handler(req, res) {
 
   if (funcao === "busca_ocupacoes_produto") {
     const paramProduto = param.produtoId;
+    const Montadora = param.montadora_id;
     const execbuscarOcupacoesProduto = await buscarOcupacoesProduto(
-      paramProduto
+      paramProduto,
+      Montadora
     );
 
     if (execbuscarOcupacoesProduto.status !== 200) {

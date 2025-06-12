@@ -1,4 +1,3 @@
-import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
