@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     produto_id,
   } = req.body.param;
 
-  const { montadora_id } = req.body.montadora_id;
+  const montadora_id = req.body.montadora_id;
 
   if (
     (!endereco_de ||
