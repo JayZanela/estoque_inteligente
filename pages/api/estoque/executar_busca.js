@@ -28,6 +28,7 @@ export default async function handler(req, res) {
   };
 
   const funcao = req.body.function;
+  const montadora = req.body.montadora_id;
   const param = req.body.param;
 
   console.log(req.body);
@@ -47,7 +48,7 @@ export default async function handler(req, res) {
   if (funcao === "busca_endereco_unico") {
     const execBuscaEndereco = await buscarEndereco(
       param.enderecoParam,
-      param.montadora_id
+      montadora
     );
     let produtosDetalhados = [];
 
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
 
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
       dataEndereco.id,
-      param.montadora_id
+      montadora
     );
 
     if (execBuscaOcupacoesPosicao.status !== 200) {
