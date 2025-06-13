@@ -62,6 +62,26 @@ export default async function handler(req, res) {
       montadora
     );
 
+    console.log(execBuscaOcupacoesPosicao.status);
+
+    if (execBuscaOcupacoesPosicao.status !== 200) {
+      return res
+        .status(execBuscaOcupacoesPosicao.status)
+        .json(execBuscaOcupacoesPosicao.error);
+    }
+
+    const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
+
+    for (const ocupacao of dataOcupacaoPosicao) {
+      produtosDetalhados.push(ocupacao);
+    }
+
+    const resultJson = {
+      endereco: execBuscaEndereco.data,
+      produtos: produtosDetalhados,
+    };
+
+    return res.status(200).json(resultJson);
     if (execBuscaOcupacoesPosicao.status !== 200) {
     } else {
       const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
@@ -84,13 +104,6 @@ export default async function handler(req, res) {
         }
       }
     }
-
-    const resultJson = {
-      endereco: execBuscaEndereco.data,
-      produtos: produtosDetalhados,
-    };
-
-    return res.status(200).json(resultJson);
   }
 
   //Etapa 1.1 -> Executar busca_produto_like
