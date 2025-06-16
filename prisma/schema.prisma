@@ -7,166 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model categorias {
-  id            Int             @id @default(autoincrement())
-  nome          String
-  descricao     String?
-  codigo        String?         @unique
-  produtos      produtos[]
-  subcategorias subcategorias[]
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model categorias {
+// }
 
-model codigos_barras_produto {
-  id            Int       @id @default(autoincrement())
-  produto_id    Int
-  codigo_barras String
-  valido_ate    DateTime? @db.Date
-  observacao    String?
-  produtos      produtos  @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model codigos_barras_produto {
+// }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model modelos_moto {
-  id                    Int                     @id @default(autoincrement())
-  nome                  String
-  marca                 String?
-  ano_inicio            Int?
-  ano_fim               Int?
-  potencia              Int?
-  autonomia_km          Int?
-  velocidade_km         Int?
-  peso_kg               Int?
-  capacidade_carga_kg   Int?
-  tipo                  String?
-  descricao             String?
-  imagem_url            String?
-  status                String?
-  data_cadastro         DateTime?               @db.Date
-  edicao                String?
-  produtos_modelos_moto produtos_modelos_moto[]
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model movimentacoes {
+// }
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model ocupacoes_estoque {
+// }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model movimentacoes {
-  id                                                                     Int                @id @default(autoincrement())
-  ocupacao_origem_id                                                     Int?
-  ocupacao_destino_id                                                    Int?
-  tipo                                                                   String?            @default("Ajuste")
-  quantidade                                                             Int
-  data_hora                                                              DateTime           @db.Timestamp(6)
-  responsavel_id                                                         Int?
-  documento_id                                                           Int?
-  motivo                                                                 String?
-  observacoes                                                            String?
-  ocupacoes_estoque_movimentacoes_ocupacao_destino_idToocupacoes_estoque ocupacoes_estoque? @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque", fields: [ocupacao_destino_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  ocupacoes_estoque_movimentacoes_ocupacao_origem_idToocupacoes_estoque  ocupacoes_estoque? @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque", fields: [ocupacao_origem_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model ocupacoes_estoque {
-  id                                                                 Int               @id @default(autoincrement())
-  lote_id                                                            Int?
-  quantidade                                                         Int
-  data_alocacao                                                      DateTime?         @default(now()) @db.Timestamp(6)
-  observacoes                                                        String?
-  produto_id                                                         Int?
-  posicao_id                                                         Int?
-  montadora_id                                                       Int?
-  movimentacoes_movimentacoes_ocupacao_destino_idToocupacoes_estoque movimentacoes[]   @relation("movimentacoes_ocupacao_destino_idToocupacoes_estoque")
-  movimentacoes_movimentacoes_ocupacao_origem_idToocupacoes_estoque  movimentacoes[]   @relation("movimentacoes_ocupacao_origem_idToocupacoes_estoque")
-  montadoras                                                         montadoras?       @relation(fields: [montadora_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posicoes_estoque_ocupacoes_estoque_posicao_idToposicoes_estoque    posicoes_estoque? @relation("ocupacoes_estoque_posicao_idToposicoes_estoque", fields: [posicao_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  produtos                                                           produtos?         @relation(fields: [produto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model posicoes_estoque {
+// }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model posicoes_estoque {
-  id                                                               Int                 @id @default(autoincrement())
-  endereco                                                         String
-  status                                                           String?             @default("Livre")
-  ultima_movimentacao                                              DateTime?           @db.Timestamp(6)
-  observacoes                                                      String?
-  capacidade_maxima                                                Int?
-  tipo_posicao                                                     String?             @default("Padrão")
-  montadora_id                                                     Int?
-  ocupacoes_estoque_ocupacoes_estoque_posicao_idToposicoes_estoque ocupacoes_estoque[] @relation("ocupacoes_estoque_posicao_idToposicoes_estoque")
-  montadoras                                                       montadoras?         @relation(fields: [montadora_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model produtos {
+// }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model produtos {
-  id                      Int                      @id @default(autoincrement())
-  nome                    String?
-  sku                     String?
-  peso_unitario           Int?                     @default(1)
-  volume_fisico           Int?                     @default(1)
-  tipo_embalagem          String?
-  descricao               String?
-  codigo_barras           String?
-  preco_custo             Int?
-  preco_venda             Int?
-  estoque_minimo          Int?                     @default(0)
-  estoque_maximo          Int?                     @default(10000)
-  ponto_reposicao         Int?
-  tempo_reposicao         Int?                     @default(365)
-  status                  String?                  @default("Ativo")
-  unidade_medida          String?
-  categoria_id            Int?
-  subcategoria_id         Int?
-  fornecedor_principal_id Int?
-  data_cadastro           DateTime?                @default(now()) @db.Date
-  imagem_url              String?
-  codigos_barras_produto  codigos_barras_produto[]
-  ocupacoes_estoque       ocupacoes_estoque[]
-  categorias              categorias?              @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subcategorias           subcategorias?           @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  produtos_modelos_moto   produtos_modelos_moto[]
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model subcategorias {
+// }
 
-model subcategorias {
-  id           Int        @id @default(autoincrement())
-  categoria_id Int
-  nome         String
-  descricao    String?
-  codigo       String?    @unique
-  produtos     produtos[]
-  categorias   categorias @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model Produtos_Fiscal {
-  id         Int       @id @default(autoincrement())
-  created_at DateTime? @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
-  created_by String?   @db.VarChar
-  updated_by String?   @db.VarChar
-  nc_order   Decimal?  @db.Decimal
-  title      String?
-
-  @@index([nc_order], map: "Produtos_Fiscal_order_idx")
-}
-
-model produtos_modelos_moto {
-  id             Int          @id @default(autoincrement())
-  produto_id     Int
-  modelo_moto_id Int
-  modelos_moto   modelos_moto @relation(fields: [modelo_moto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_modelo")
-  produtos       produtos     @relation(fields: [produto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_produto")
-
-  @@unique([produto_id, modelo_moto_id], map: "produtos_modelos_moto_unique")
-}
-
-model montadoras {
-  id                Int                 @id @default(autoincrement())
-  nome              String
-  codigo            String              @unique
-  cnpj              String
-  cidade            String
-  estado            String
-  rua               String
-  numero            String
-  cep               String
-  obs_endereco      String
-  data_cadastro     DateTime?           @default(now()) @db.Timestamp(6)
-  observacoes       String?
-  ocupacoes_estoque ocupacoes_estoque[]
-  posicoes_estoque  posicoes_estoque[]
-}
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model montadoras {
+// }
