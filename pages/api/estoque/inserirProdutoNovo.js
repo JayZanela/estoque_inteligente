@@ -2,7 +2,7 @@ import { categorizaInteligente } from "@/lib/utils/openai/categoriza_inteligente
 import {
   inserirProdutoNovo,
   relacionarModeloeProduto,
-} from "@/lib/utils/funcao_insert_produto";
+} from "@/lib/utils/funcoes_produto";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
