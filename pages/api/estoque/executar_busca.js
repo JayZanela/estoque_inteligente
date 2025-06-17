@@ -6,6 +6,8 @@ import {
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
+import { BuscarTodasCategorias } from "@/lib/utils/funcoes_categorias";
+import { BuscarTodasSubCategorias } from "@/lib/utils/funcoes_subcategorias";
 
 export default async function handler(req, res) {
   // Libera CORS para requisições de qualquer origem
@@ -23,6 +25,8 @@ export default async function handler(req, res) {
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
     busca_ocupacoes_produto: (param) => param.produtoParam,
+    buscar_todas_categorias: () => true,
+    buscar_todas_sub_categorias: () => true,
     // adicione outras funções aqui
   };
 
@@ -42,6 +46,33 @@ export default async function handler(req, res) {
       .json({ error: "Parâmetros inválidos para a função " + funcao });
   }
 */
+
+  if (funcao === "buscar_todas_sub_categorias") {
+    const execBuscaSubCategorias = await BuscarTodasSubCategorias();
+
+    if (execBuscaSubCategorias.status !== 200) {
+      return res
+        .status(execBuscaSubCategorias.status)
+        .json(execBuscaSubCategorias.error);
+    }
+    return res
+      .status(execBuscaSubCategorias.status)
+      .json(execBuscaSubCategorias.data);
+  }
+
+  if (funcao === "buscar_todas_categorias") {
+    const execBuscaCategorias = await BuscarTodasCategorias();
+
+    if (execBuscaCategorias.status !== 200) {
+      return res
+        .status(execBuscaCategorias.status)
+        .json(execBuscaCategorias.error);
+    }
+    return res
+      .status(execBuscaCategorias.status)
+      .json(execBuscaCategorias.data);
+  }
+
   //Etapa 1.0 -> Executar a Função busca_endereco_unico
 
   if (funcao === "busca_endereco_unico") {
