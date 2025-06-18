@@ -126,3 +126,23 @@ model subcategorias {
   produtos     produtos[]
   categorias   categorias @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model modelos_moto {
+  id                  Int       @id @default(autoincrement())
+  nome                String
+  marca               String?
+  ano_inicio          Int?
+  ano_fim             Int?
+  potencia            Int?
+  autonomia_km        Int?
+  velocidade_km       Int?
+  peso_kg             Int?
+  capacidade_carga_kg Int?
+  tipo                String
+  descricao           String?
+  imagem_url          String?
+  status              String
+  data_cadastro       DateTime? @default(now()) @db.Timestamptz(6)
+  edicao              String?
+}
