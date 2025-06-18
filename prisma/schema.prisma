@@ -28,14 +28,14 @@ model codigos_barras_produto {
 model montadoras {
   id                Int                 @id @default(autoincrement())
   nome              String
-  codigo            String?             @unique
-  cnpj              String              @default("")
-  cidade            String              @default("")
-  estado            String              @default("")
-  rua               String              @default("")
-  numero            String              @default("")
-  cep               String              @default("")
-  obs_endereco      String              @default("")
+  codigo            String              @unique
+  cnpj              String
+  cidade            String
+  estado            String
+  rua               String
+  numero            String
+  cep               String
+  obs_endereco      String
   data_cadastro     DateTime?           @default(now()) @db.Timestamp(6)
   observacoes       String?
   ocupacoes_estoque ocupacoes_estoque[]
