@@ -115,6 +115,7 @@ model produtos {
   ocupacoes_estoque       ocupacoes_estoque[]
   categorias              categorias?              @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   subcategorias           subcategorias?           @relation(fields: [subcategoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  produtos_modelos_moto   produtos_modelos_moto[]
 }
 
 model subcategorias {
@@ -129,20 +130,31 @@ model subcategorias {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model modelos_moto {
-  id                  Int       @id @default(autoincrement())
-  nome                String
-  marca               String?
-  ano_inicio          Int?
-  ano_fim             Int?
-  potencia            Int?
-  autonomia_km        Int?
-  velocidade_km       Int?
-  peso_kg             Int?
-  capacidade_carga_kg Int?
-  tipo                String
-  descricao           String?
-  imagem_url          String?
-  status              String
-  data_cadastro       DateTime? @default(now()) @db.Timestamptz(6)
-  edicao              String?
+  id                    Int                     @id @default(autoincrement())
+  nome                  String
+  marca                 String?
+  ano_inicio            Int?
+  ano_fim               Int?
+  potencia              Int?
+  autonomia_km          Int?
+  velocidade_km         Int?
+  peso_kg               Int?
+  capacidade_carga_kg   Int?
+  tipo                  String
+  descricao             String?
+  imagem_url            String?
+  status                String
+  data_cadastro         DateTime?               @default(now()) @db.Timestamptz(6)
+  edicao                String?
+  produtos_modelos_moto produtos_modelos_moto[]
+}
+
+model produtos_modelos_moto {
+  id             Int          @id @default(autoincrement())
+  produto_id     Int
+  modelo_moto_id Int
+  modelos_moto   modelos_moto @relation(fields: [modelo_moto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_modelo")
+  produtos       produtos     @relation(fields: [produto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_produto")
+
+  @@unique([produto_id, modelo_moto_id], map: "produtos_modelos_moto_unique")
 }
