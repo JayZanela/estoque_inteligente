@@ -1,18 +1,13 @@
-import { criarDado } from "@/lib/db/actions";
 import { buscarMovimentos } from "@/lib/utils/funcoes_movimentacoes";
 import {
-  criar_nova_ocupacao,
-  relacionaOcupacaoeProduto,
-  atualizarQuantidadeOcupacao,
-  verificarOcupacaoProduto,
-  relacionaOcupacaoaPosicao,
-  verificarOcupacaoPosicao,
   buscarProdutosdaOcupacao,
   buscaOcupacoesEndereco,
   buscarOcupacoesProduto,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
+import { BuscarTodasCategorias } from "@/lib/utils/funcoes_categorias";
+import { BuscarTodasSubCategorias } from "@/lib/utils/funcoes_subcategorias";
 
 export default async function handler(req, res) {
   // Libera CORS para requisições de qualquer origem
@@ -30,10 +25,13 @@ export default async function handler(req, res) {
     busca_produto_like: (param) => param.colunasParam && param.termoParam,
     busca_movimentos_equals: (param) => param.colunasParam && param.termoParam,
     busca_ocupacoes_produto: (param) => param.produtoParam,
+    buscar_todas_categorias: () => true,
+    buscar_todas_sub_categorias: () => true,
     // adicione outras funções aqui
   };
 
   const funcao = req.body.function;
+  const montadora = req.body.montadora_id;
   const param = req.body.param;
 
   console.log(req.body);
@@ -48,12 +46,41 @@ export default async function handler(req, res) {
       .json({ error: "Parâmetros inválidos para a função " + funcao });
   }
 */
+
+  if (funcao === "buscar_todas_sub_categorias") {
+    const execBuscaSubCategorias = await BuscarTodasSubCategorias();
+
+    if (execBuscaSubCategorias.status !== 200) {
+      return res
+        .status(execBuscaSubCategorias.status)
+        .json(execBuscaSubCategorias.error);
+    }
+    return res
+      .status(execBuscaSubCategorias.status)
+      .json(execBuscaSubCategorias.data);
+  }
+
+  if (funcao === "buscar_todas_categorias") {
+    const execBuscaCategorias = await BuscarTodasCategorias();
+
+    if (execBuscaCategorias.status !== 200) {
+      return res
+        .status(execBuscaCategorias.status)
+        .json(execBuscaCategorias.error);
+    }
+    return res
+      .status(execBuscaCategorias.status)
+      .json(execBuscaCategorias.data);
+  }
+
   //Etapa 1.0 -> Executar a Função busca_endereco_unico
 
   if (funcao === "busca_endereco_unico") {
-    const execBuscaEndereco = await buscarEndereco(param.enderecoParam);
+    const execBuscaEndereco = await buscarEndereco(
+      param.enderecoParam,
+      montadora
+    );
     let produtosDetalhados = [];
-    //const execBuscaEndereco = await buscarEndereco(param.enderecoParam?);
 
     if (execBuscaEndereco.status !== 200) {
       return res.status(execBuscaEndereco.status).json(execBuscaEndereco.error);
@@ -62,9 +89,30 @@ export default async function handler(req, res) {
     const dataEndereco = await execBuscaEndereco.data;
 
     const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
-      dataEndereco.id
+      dataEndereco.id,
+      montadora
     );
 
+    console.log(execBuscaOcupacoesPosicao.status);
+
+    if (execBuscaOcupacoesPosicao.status !== 200) {
+      return res
+        .status(execBuscaOcupacoesPosicao.status)
+        .json(execBuscaOcupacoesPosicao.error);
+    }
+
+    const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
+
+    for (const ocupacao of dataOcupacaoPosicao) {
+      produtosDetalhados.push(ocupacao);
+    }
+
+    const resultJson = {
+      endereco: execBuscaEndereco.data,
+      produtos: produtosDetalhados,
+    };
+
+    return res.status(200).json(resultJson);
     if (execBuscaOcupacoesPosicao.status !== 200) {
     } else {
       const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
@@ -87,13 +135,6 @@ export default async function handler(req, res) {
         }
       }
     }
-
-    const resultJson = {
-      endereco: execBuscaEndereco.data,
-      produtos: produtosDetalhados,
-    };
-
-    return res.status(200).json(resultJson);
   }
 
   //Etapa 1.1 -> Executar busca_produto_like
@@ -168,8 +209,10 @@ export default async function handler(req, res) {
 
   if (funcao === "busca_ocupacoes_produto") {
     const paramProduto = param.produtoId;
+    const Montadora = montadora;
     const execbuscarOcupacoesProduto = await buscarOcupacoesProduto(
-      paramProduto
+      paramProduto,
+      Montadora
     );
 
     if (execbuscarOcupacoesProduto.status !== 200) {

@@ -1,20 +1,17 @@
-import { criarDado } from "@/lib/db/actions";
 import { criaMovimentacao } from "@/lib/utils/funcoes_movimentacoes";
 import {
   criar_nova_ocupacao,
-  relacionaOcupacaoeProduto,
   atualizarQuantidadeOcupacao,
-  verificarOcupacaoProduto,
-  relacionaOcupacaoaPosicao,
-  verificarOcupacaoPosicao,
   buscaOcupacoesEndereco,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 
 export default async function handler(req, res) {
-  let ocupacaoProdutoExiste = false;
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   let detalhesOcupacao = {};
-  let ocupacaoXposicaoExiste = false;
 
   let ocupacaoXProduto = false;
 
@@ -35,13 +32,16 @@ export default async function handler(req, res) {
     produto_id,
   } = req.body.param;
 
+  const montadora_id = req.body.montadora_id;
+
   if (
     !endereco ||
     typeof quantidade !== "number" ||
     quantidade <= 0 ||
     !responsavel_id ||
     !motivo ||
-    !produto_id
+    !produto_id ||
+    !montadora_id
   ) {
     return res.status(406).json({
       etapa: "1.0",
@@ -55,12 +55,13 @@ export default async function handler(req, res) {
         motivo: !!motivo,
         observacoes: observacoes ?? "(opcional)",
         produto_id: !!produto_id,
+        montadora_id: !!montadora_id,
       },
     });
   }
 
   // Etapa 1.0 - Buscar endereço
-  const runEnderecoExiste = await buscarEndereco(endereco);
+  const runEnderecoExiste = await buscarEndereco(endereco, montadora_id);
   if (runEnderecoExiste.status !== 200) {
     return res
       .status(runEnderecoExiste.status)
@@ -70,7 +71,8 @@ export default async function handler(req, res) {
 
   //Etapa 1.1 - Tenho Ocupações no endereço?
   const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
-    detalhesEndereco.id
+    detalhesEndereco.id,
+    montadora_id
   );
   if (
     runOcupacoesdoEndereco.status !== 200 &&
@@ -96,7 +98,8 @@ export default async function handler(req, res) {
       observacoes,
       0,
       produto_id,
-      detalhesEndereco.id
+      detalhesEndereco.id,
+      montadora_id
     );
     if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
       return res.status(gerarNovaOcupacao.status).json({
