@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     );
 
     const id_produtoNovo = inserirRegistro.produto.id;
-    const categorizarInteligente = await categorizaInteligente(
+    /*const categorizarInteligente = await categorizaInteligente(
       inserirRegistro.produto
     );
 
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       return res
         .status(categorizarInteligente.status)
         .json({ error: `${categorizarInteligente.error}` });
-    }
+    }*/
     const vinculaModelos = await relacionarModeloeProduto(
       modelo,
       id_produtoNovo
