@@ -53,11 +53,6 @@ export default async function handler(req, res) {
       .status(422)
       .json({ error: `Parâmetros inválidos para a função "${funcao}".` });
   }
-  if (!validadores[funcao](montadora)) {
-    return res
-      .status(422)
-      .json({ error: `Montadora inválido para a função "${funcao}".` });
-  }
 
   // --- 4) Autenticação e execução da lógica ---
   await authenticateToken(req, res, async () => {
