@@ -4,7 +4,7 @@ import {
   buscaOcupacoesEndereco,
   buscarOcupacoesProduto,
 } from "@/lib/utils/funcoes_ocupacoes";
-import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
+import { buscarEndereco, buscarEnderecos } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
 import { BuscarTodasCategorias } from "@/lib/utils/funcoes_categorias";
 import { BuscarTodasSubCategorias } from "@/lib/utils/funcoes_subcategorias";
@@ -25,6 +25,7 @@ const validadores = {
   busca_ocupacoes_produto: (param) => !!param.produtoId,
   buscar_todas_categorias: () => true,
   buscar_todas_sub_categorias: () => true,
+  busca_enderecos_completos: () => true,
   // adicione outros validadores conforme necessidade
 };
 
@@ -51,6 +52,11 @@ export default async function handler(req, res) {
     return res
       .status(422)
       .json({ error: `Parâmetros inválidos para a função "${funcao}".` });
+  }
+  if (!validadores[funcao](montadora)) {
+    return res
+      .status(422)
+      .json({ error: `Montadora inválido para a função "${funcao}".` });
   }
 
   // --- 4) Autenticação e execução da lógica ---
@@ -235,6 +241,51 @@ export default async function handler(req, res) {
       }
 
       return res.status(200).json(execbuscarOcupacoesProduto.data);
+    }
+
+    if (funcao === "busca_enderecos_completos") {
+      const Montadora = montadora;
+      const execbuscarOcupacoesProduto = await buscarEnderecos(Montadora);
+
+      let enderecosDetalhados = [];
+
+      if (execbuscarOcupacoesProduto.status !== 200) {
+        return res
+          .status(execbuscarOcupacoesProduto.status)
+          .json(execbuscarOcupacoesProduto.error);
+      }
+
+      for (const endereco of execbuscarOcupacoesProduto.data) {
+        const execBuscaOcupacoesPosicao = await buscaOcupacoesEndereco(
+          endereco.id,
+          montadora
+        );
+
+        console.log(execBuscaOcupacoesPosicao.status);
+
+        if (execBuscaOcupacoesPosicao.status === 406) {
+          enderecosDetalhados.push({
+            endereco: endereco,
+            produtos: [],
+          });
+          continue;
+        }
+
+        if (execBuscaOcupacoesPosicao.status !== 200) {
+          return res
+            .status(execBuscaOcupacoesPosicao.status)
+            .json(execBuscaOcupacoesPosicao.error);
+        }
+
+        const dataOcupacaoPosicao = execBuscaOcupacoesPosicao.data;
+
+        enderecosDetalhados.push({
+          endereco: endereco,
+          produtos: dataOcupacaoPosicao,
+        });
+      }
+
+      return res.status(200).json({ enderecosDetalhados });
     }
   });
 }
