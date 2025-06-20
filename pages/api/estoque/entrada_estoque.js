@@ -6,10 +6,12 @@ import {
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 
+import { authenticateToken } from "@/lib/auth";
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   let detalhesOcupacao = {};
 
@@ -60,97 +62,99 @@ export default async function handler(req, res) {
     });
   }
 
-  // Etapa 1.0 - Buscar endereço
-  const runEnderecoExiste = await buscarEndereco(endereco, montadora_id);
-  if (runEnderecoExiste.status !== 200) {
-    return res
-      .status(runEnderecoExiste.status)
-      .json({ etapa: "1.0", error: runEnderecoExiste.error });
-  }
-  const detalhesEndereco = runEnderecoExiste.data;
-
-  //Etapa 1.1 - Tenho Ocupações no endereço?
-  const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
-    detalhesEndereco.id,
-    montadora_id
-  );
-  if (
-    runOcupacoesdoEndereco.status !== 200 &&
-    runOcupacoesdoEndereco.status !== 406
-  ) {
-    return res
-      .status(runOcupacoesdoEndereco.status)
-      .json({ etapa: "1.1", error: runOcupacoesdoEndereco.error });
-  }
-
-  for (const ocupacao of runOcupacoesdoEndereco.data || []) {
-    if (ocupacao.ocupacao.produto_id === produto_id) {
-      detalhesOcupacao = ocupacao.ocupacao;
-      ocupacaoXProduto = true;
-      break;
+  await authenticateToken(req, res, async () => {
+    // Etapa 1.0 - Buscar endereço
+    const runEnderecoExiste = await buscarEndereco(endereco, montadora_id);
+    if (runEnderecoExiste.status !== 200) {
+      return res
+        .status(runEnderecoExiste.status)
+        .json({ etapa: "1.0", error: runEnderecoExiste.error });
     }
-  }
+    const detalhesEndereco = runEnderecoExiste.data;
 
-  //Etapa 1.1.1 -> Criar Nova Ocupação
-  if (!ocupacaoXProduto) {
-    const gerarNovaOcupacao = await criar_nova_ocupacao(
-      quantidade,
-      observacoes,
-      0,
-      produto_id,
+    //Etapa 1.1 - Tenho Ocupações no endereço?
+    const runOcupacoesdoEndereco = await buscaOcupacoesEndereco(
       detalhesEndereco.id,
       montadora_id
     );
-    if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
-      return res.status(gerarNovaOcupacao.status).json({
-        etapa: "1.1.1",
-        error: gerarNovaOcupacao.error,
+    if (
+      runOcupacoesdoEndereco.status !== 200 &&
+      runOcupacoesdoEndereco.status !== 406
+    ) {
+      return res
+        .status(runOcupacoesdoEndereco.status)
+        .json({ etapa: "1.1", error: runOcupacoesdoEndereco.error });
+    }
+
+    for (const ocupacao of runOcupacoesdoEndereco.data || []) {
+      if (ocupacao.ocupacao.produto_id === produto_id) {
+        detalhesOcupacao = ocupacao.ocupacao;
+        ocupacaoXProduto = true;
+        break;
+      }
+    }
+
+    //Etapa 1.1.1 -> Criar Nova Ocupação
+    if (!ocupacaoXProduto) {
+      const gerarNovaOcupacao = await criar_nova_ocupacao(
+        quantidade,
+        observacoes,
+        0,
+        produto_id,
+        detalhesEndereco.id,
+        montadora_id
+      );
+      if (gerarNovaOcupacao.status !== 200 || !gerarNovaOcupacao.data) {
+        return res.status(gerarNovaOcupacao.status).json({
+          etapa: "1.1.1",
+          error: gerarNovaOcupacao.error,
+        });
+      }
+
+      detalhesOcupacao = gerarNovaOcupacao.data;
+    }
+    //Etapa 1.1.2 -> Atualizar Quantidade da Ocupacao
+    else {
+      console.log(quantidade, detalhesOcupacao.id);
+      const quantidadeAtualziada = await atualizarQuantidadeOcupacao(
+        quantidade,
+        detalhesOcupacao.id
+      );
+
+      if (quantidadeAtualziada.status !== 200) {
+        return res
+          .status(quantidadeAtualziada.status)
+          .json({ etapa: "1.1.2", error: quantidadeAtualziada.error });
+      }
+    }
+
+    const parametroMovimento = {
+      ocupacao_origem_id: 1, // Ajuste se necessário
+      ocupacao_destino_id: detalhesOcupacao.id,
+      tipo: "Entrada",
+      quantidade: quantidade,
+      responsavel_id: responsavel_id,
+      documento_id: null,
+      motivo: motivo,
+      observacoes: observacoes ?? "",
+      endereco_id: detalhesEndereco.id,
+    };
+
+    //Etapa 1.2 -> Registra movimentação executada.
+    const registraMovimentoEntrada = await criaMovimentacao(parametroMovimento);
+
+    if (registraMovimentoEntrada.status !== 200) {
+      return res.status(registraMovimentoEntrada.status).json({
+        etapa: "1.2",
+        error: registraMovimentoEntrada.error,
       });
     }
-
-    detalhesOcupacao = gerarNovaOcupacao.data;
-  }
-  //Etapa 1.1.2 -> Atualizar Quantidade da Ocupacao
-  else {
-    console.log(quantidade, detalhesOcupacao.id);
-    const quantidadeAtualziada = await atualizarQuantidadeOcupacao(
-      quantidade,
-      detalhesOcupacao.id
-    );
-
-    if (quantidadeAtualziada.status !== 200) {
-      return res
-        .status(quantidadeAtualziada.status)
-        .json({ etapa: "1.1.2", error: quantidadeAtualziada.error });
-    }
-  }
-
-  const parametroMovimento = {
-    ocupacao_origem_id: 1, // Ajuste se necessário
-    ocupacao_destino_id: detalhesOcupacao.id,
-    tipo: "Entrada",
-    quantidade: quantidade,
-    responsavel_id: responsavel_id,
-    documento_id: null,
-    motivo: motivo,
-    observacoes: observacoes ?? "",
-    endereco_id: detalhesEndereco.id,
-  };
-
-  //Etapa 1.2 -> Registra movimentação executada.
-  const registraMovimentoEntrada = await criaMovimentacao(parametroMovimento);
-
-  if (registraMovimentoEntrada.status !== 200) {
-    return res.status(registraMovimentoEntrada.status).json({
-      etapa: "1.2",
-      error: registraMovimentoEntrada.error,
+    return res.status(200).json({
+      etapa: "1.3",
+      status: 200,
+      mensagem: "Movimentação registrada com sucesso.",
+      ocupacao: detalhesOcupacao,
+      movimento: registraMovimentoEntrada.message,
     });
-  }
-  return res.status(200).json({
-    etapa: "1.3",
-    status: 200,
-    mensagem: "Movimentação registrada com sucesso.",
-    ocupacao: detalhesOcupacao,
-    movimento: registraMovimentoEntrada.message,
   });
 }

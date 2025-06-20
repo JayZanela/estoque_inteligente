@@ -158,3 +158,12 @@ model produtos_modelos_moto {
 
   @@unique([produto_id, modelo_moto_id], map: "produtos_modelos_moto_unique")
 }
+
+ model user {
+ id        Int     @id @default(autoincrement()) 
+email     String   @unique
+ password  String
+ name      String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ }

@@ -8,9 +8,9 @@ import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
 import { BuscarProdutos } from "@/lib/utils/funcoes_gets_produtos";
 import { BuscarTodasCategorias } from "@/lib/utils/funcoes_categorias";
 import { BuscarTodasSubCategorias } from "@/lib/utils/funcoes_subcategorias";
-
 export default async function handler(req, res) {
   // Libera CORS para requisições de qualquer origem
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
+
   //Etapa 0.0 -> Validações Iniciais (Verifica a existencia de parametros e função)
   const validadores = {
     busca_endereco_unico: (param) => param.enderecoParam,

@@ -4,11 +4,11 @@ import {
   subtraiQuantidadeOcupacao,
 } from "@/lib/utils/funcoes_ocupacoes";
 import { buscarEndereco } from "@/lib/utils/funcoes_posicoes";
-
+import { authenticateToken } from "@/lib/auth";
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   let detalhesOcupacaoDestino = {};
   let detalhesOcupacaoOrigem = {};
@@ -25,80 +25,81 @@ export default async function handler(req, res) {
     return res.status(405).json({ etapa: "1", message: "Metodo Inválido" });
   }
 
-  const {
-    endereco_de,
-    quantidade,
-    responsavel_id,
-    motivo,
-    observacoes,
-    produto_id,
-  } = req.body.param;
+  await authenticateToken(req, res, async () => {
+    const {
+      endereco_de,
+      quantidade,
+      responsavel_id,
+      motivo,
+      observacoes,
+      produto_id,
+    } = req.body.param;
 
-  const montadora_id = req.body.montadora_id;
+    const montadora_id = req.body.montadora_id;
 
-  if (
-    (!endereco_de ||
-      typeof quantidade !== "number" ||
-      quantidade <= 0 ||
-      !responsavel_id ||
-      !motivo ||
-      !produto_id,
-    !montadora_id)
-  ) {
-    return res.status(406).json({
-      etapa: "1.0",
-      status: 406,
-      error:
-        "Parâmetros inválidos. Verifique se todos os campos obrigatórios foram preenchidos corretamente.",
-      detalhes: {
-        endereco_de: !!endereco_de,
-        quantidade: quantidade,
-        responsavel_id: !!responsavel_id,
-        motivo: !!motivo,
-        observacoes: observacoes ?? "(opcional)",
-        produto_id: !!produto_id,
-        montadora_id: !!montadora_id,
-      },
-    });
-  }
-
-  //Etapa 1.0 Buscar Endereço DE
-  const runEnderecoDEExiste = await buscarEndereco(endereco_de, montadora_id);
-  if (runEnderecoDEExiste.status !== 200) {
-    return res
-      .status(runEnderecoDEExiste.status)
-      .json({ etapa: "1.0", error: runEnderecoDEExiste.error });
-  }
-  detalhesEnderedoDE = await runEnderecoDEExiste.data;
-  idEnderecoOrigem = await runEnderecoDEExiste.data.id;
-
-  console.log("LOG 1", idEnderecoOrigem);
-
-  const runOcupacoesdoEnderecoDE = await buscaOcupacoesEndereco(
-    idEnderecoOrigem,
-    montadora_id
-  );
-  if (runOcupacoesdoEnderecoDE.status !== 200) {
-    return res
-      .status(runOcupacoesdoEnderecoDE.status)
-      .json({ etapa: "1.1", error: runOcupacoesdoEnderecoDE.error });
-  }
-
-  for (const ocupacao of runOcupacoesdoEnderecoDE.data) {
-    if (ocupacao.ocupacao.produto_id === produto_id) {
-      detalhesOcupacaoOrigem = ocupacao.ocupacao;
-
-      if (quantidade > ocupacao.ocupacao.quantidade) {
-        return res.status(415).json({
-          etapa: "1.0.1",
-          error:
-            "Quantidade da Ocupação de Origem é menor que o Solicitado para Saída",
-        });
-      }
-      break;
+    if (
+      (!endereco_de ||
+        typeof quantidade !== "number" ||
+        quantidade <= 0 ||
+        !responsavel_id ||
+        !motivo ||
+        !produto_id,
+      !montadora_id)
+    ) {
+      return res.status(406).json({
+        etapa: "1.0",
+        status: 406,
+        error:
+          "Parâmetros inválidos. Verifique se todos os campos obrigatórios foram preenchidos corretamente.",
+        detalhes: {
+          endereco_de: !!endereco_de,
+          quantidade: quantidade,
+          responsavel_id: !!responsavel_id,
+          motivo: !!motivo,
+          observacoes: observacoes ?? "(opcional)",
+          produto_id: !!produto_id,
+          montadora_id: !!montadora_id,
+        },
+      });
     }
-  }
-  /*
+
+    //Etapa 1.0 Buscar Endereço DE
+    const runEnderecoDEExiste = await buscarEndereco(endereco_de, montadora_id);
+    if (runEnderecoDEExiste.status !== 200) {
+      return res
+        .status(runEnderecoDEExiste.status)
+        .json({ etapa: "1.0", error: runEnderecoDEExiste.error });
+    }
+    detalhesEnderedoDE = await runEnderecoDEExiste.data;
+    idEnderecoOrigem = await runEnderecoDEExiste.data.id;
+
+    console.log("LOG 1", idEnderecoOrigem);
+
+    const runOcupacoesdoEnderecoDE = await buscaOcupacoesEndereco(
+      idEnderecoOrigem,
+      montadora_id
+    );
+    if (runOcupacoesdoEnderecoDE.status !== 200) {
+      return res
+        .status(runOcupacoesdoEnderecoDE.status)
+        .json({ etapa: "1.1", error: runOcupacoesdoEnderecoDE.error });
+    }
+
+    for (const ocupacao of runOcupacoesdoEnderecoDE.data) {
+      if (ocupacao.ocupacao.produto_id === produto_id) {
+        detalhesOcupacaoOrigem = ocupacao.ocupacao;
+
+        if (quantidade > ocupacao.ocupacao.quantidade) {
+          return res.status(415).json({
+            etapa: "1.0.1",
+            error:
+              "Quantidade da Ocupação de Origem é menor que o Solicitado para Saída",
+          });
+        }
+        break;
+      }
+    }
+    /*
   // Etapa 1.0 - Buscar endereço PARA
   const runEnderecoPARAExiste = await buscarEndereco(endereco_para);
   if (runEnderecoPARAExiste.status !== 200) {
@@ -164,43 +165,44 @@ export default async function handler(req, res) {
     }
   }*/
 
-  const subtrairQuantidade = await subtraiQuantidadeOcupacao(
-    quantidade,
-    detalhesOcupacaoOrigem.id
-  );
+    const subtrairQuantidade = await subtraiQuantidadeOcupacao(
+      quantidade,
+      detalhesOcupacaoOrigem.id
+    );
 
-  if (subtrairQuantidade.status !== 200) {
-    return res
-      .status(subtrairQuantidade.status)
-      .json({ etapa: "1.5.1", error: subtrairQuantidade.error });
-  }
+    if (subtrairQuantidade.status !== 200) {
+      return res
+        .status(subtrairQuantidade.status)
+        .json({ etapa: "1.5.1", error: subtrairQuantidade.error });
+    }
 
-  const parametroMovimento = {
-    ocupacao_origem_id: detalhesOcupacaoOrigem.id, // Ajuste se necessário
-    ocupacao_destino_id: 2,
-    tipo: "Saída",
-    quantidade: quantidade,
-    responsavel_id: responsavel_id,
-    documento_id: null,
-    motivo: motivo,
-    observacoes: observacoes ?? "",
-    endereco_id: idEnderecoOrigem,
-  };
+    const parametroMovimento = {
+      ocupacao_origem_id: detalhesOcupacaoOrigem.id, // Ajuste se necessário
+      ocupacao_destino_id: 2,
+      tipo: "Saída",
+      quantidade: quantidade,
+      responsavel_id: responsavel_id,
+      documento_id: null,
+      motivo: motivo,
+      observacoes: observacoes ?? "",
+      endereco_id: idEnderecoOrigem,
+    };
 
-  //Etapa 1.2 -> Registra movimentação executada.
-  const registraMovimentoSaida = await criaMovimentacao(parametroMovimento);
+    //Etapa 1.2 -> Registra movimentação executada.
+    const registraMovimentoSaida = await criaMovimentacao(parametroMovimento);
 
-  if (registraMovimentoSaida.status !== 200) {
-    return res.status(registraMovimentoSaida.status).json({
-      etapa: "1.2",
-      error: registraMovimentoSaida.error,
+    if (registraMovimentoSaida.status !== 200) {
+      return res.status(registraMovimentoSaida.status).json({
+        etapa: "1.2",
+        error: registraMovimentoSaida.error,
+      });
+    }
+    return res.status(200).json({
+      etapa: "1.3",
+      status: 200,
+      mensagem: "Movimentação registrada com sucesso.",
+      ocupacao_origem: detalhesOcupacaoOrigem,
+      movimento: registraMovimentoSaida.message,
     });
-  }
-  return res.status(200).json({
-    etapa: "1.3",
-    status: 200,
-    mensagem: "Movimentação registrada com sucesso.",
-    ocupacao_origem: detalhesOcupacaoOrigem,
-    movimento: registraMovimentoSaida.message,
   });
 }
